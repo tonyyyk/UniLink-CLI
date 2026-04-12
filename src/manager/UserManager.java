@@ -1,0 +1,228 @@
+package manager;
+
+import model.Student;
+import state.NormalState;
+import state.SuspendedState;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * SINGLETON PATTERN — UserManager.
+ *
+ * Manages all user data persistence via users.csv.
+ * There is exactly one instance of this class for the lifetime of the
+ * application, guaranteeing that no two code paths ever write to
+ * users.csv simultaneously and risk corrupting the file.
+ *
+ * CSV format:
+ *   username,password,major,strengths,weaknesses,role,status
+ *
+ * The private constructor + static getInstance() method enforce the Singleton.
+ */
+public class UserManager {
+
+    // ── Singleton ─────────────────────────────────────────────────────────────
+
+    private static UserManager instance;
+
+    /** Package-visible for unit testing; use getInstance() in production. */
+    static final String FILE_PATH = "data/users.csv";
+    private static final String CSV_HEADER = "username,password,major,strengths,weaknesses,role,status";
+
+    private UserManager() {} // private constructor prevents external instantiation
+
+    /** Returns the single shared UserManager instance, creating it on first call. */
+    public static UserManager getInstance() {
+        if (instance == null) {
+            instance = new UserManager();
+        }
+        return instance;
+    }
+
+    // ── Initialisation ────────────────────────────────────────────────────────
+
+    /**
+     * Ensures users.csv exists with a header row and a default admin account.
+     * Safe to call on every application start — does nothing if the file exists.
+     */
+    public void initialise() throws IOException {
+        File file = new File(FILE_PATH);
+        if (!file.exists()) {
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                bw.write(CSV_HEADER);
+                bw.newLine();
+                // Seed a default admin account
+                bw.write("admin,admin123,-,-,-,ADMIN,NORMAL");
+                bw.newLine();
+            }
+        }
+    }
+
+    // ── Authentication ────────────────────────────────────────────────────────
+
+    /**
+     * Register a new user. Returns false if the username is already taken.
+     * The new user starts with NormalState and the USER role.
+     */
+    public boolean register(String username, String password, String major)
+            throws IOException {
+        if (usernameExists(username)) return false;
+
+        Student newStudent = new Student(
+                username, password, major,
+                new ArrayList<>(), new ArrayList<>(),
+                "USER", new NormalState()
+        );
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
+            bw.write(newStudent.toCsvRow());
+            bw.newLine();
+        }
+        return true;
+    }
+
+    /**
+     * Attempt login. Returns the Student object on success, null on failure.
+     * Validates username exists and password matches.
+     */
+    public Student login(String username, String password) throws IOException {
+        for (Student s : readAllStudents()) {
+            if (s.getUsername().equalsIgnoreCase(username) &&
+                s.getPassword().equals(password)) {
+                return s;
+            }
+        }
+        return null; // credentials not found
+    }
+
+    // ── Profile management ────────────────────────────────────────────────────
+
+    /**
+     * Persist updated profile fields (major, strengths, weaknesses) for the
+     * given student. Rewrites the entire CSV, replacing the matching row.
+     */
+    public void updateProfile(Student student) throws IOException {
+        List<String> lines = readRawLines();
+        List<String> updated = new ArrayList<>();
+        updated.add(CSV_HEADER);
+
+        for (String line : lines) {
+            if (line.startsWith(CSV_HEADER)) continue; // skip header
+            Student s = Student.fromCsvRow(line);
+            if (s.getUsername().equalsIgnoreCase(student.getUsername())) {
+                updated.add(student.toCsvRow()); // replace with updated data
+            } else {
+                updated.add(line);
+            }
+        }
+        writeLines(updated);
+    }
+
+    // ── Query methods ─────────────────────────────────────────────────────────
+
+    /**
+     * Returns all USER-role students who are in NormalState.
+     * Used by FindPartnersCommand — suspended students are filtered out
+     * because SuspendedState.canAppearInSearch() returns false.
+     */
+    public List<Student> getAllActiveStudents() throws IOException {
+        List<Student> result = new ArrayList<>();
+        for (Student s : readAllStudents()) {
+            if (!s.isAdmin() && s.canAppearInSearch()) {
+                result.add(s);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns every student including ADMIN accounts and SUSPENDED users.
+     * Used by the admin panel to display full user list.
+     */
+    public List<Student> getAllUsers() throws IOException {
+        return readAllStudents();
+    }
+
+    public boolean usernameExists(String username) throws IOException {
+        for (Student s : readAllStudents()) {
+            if (s.getUsername().equalsIgnoreCase(username)) return true;
+        }
+        return false;
+    }
+
+    // ── Admin operations ──────────────────────────────────────────────────────
+
+    /**
+     * Suspend a user account (STATE PATTERN: sets status to SUSPENDED in CSV).
+     * The in-memory Student object is NOT updated here — the caller must also
+     * call student.suspend() if they hold a reference.
+     */
+    public void suspendUser(String username) throws IOException {
+        updateStatus(username, "SUSPENDED");
+    }
+
+    /**
+     * Reinstate a suspended account (STATE PATTERN: sets status to NORMAL).
+     */
+    public void reinstateUser(String username) throws IOException {
+        updateStatus(username, "NORMAL");
+    }
+
+    private void updateStatus(String username, String newStatus) throws IOException {
+        List<String> lines = readRawLines();
+        List<String> updated = new ArrayList<>();
+        updated.add(CSV_HEADER);
+
+        for (String line : lines) {
+            if (line.startsWith(CSV_HEADER)) continue;
+            Student s = Student.fromCsvRow(line);
+            if (s.getUsername().equalsIgnoreCase(username)) {
+                // Rebuild the row with the new status value
+                String[] parts = line.split(",", 7);
+                parts[6] = newStatus;
+                updated.add(String.join(",", parts));
+            } else {
+                updated.add(line);
+            }
+        }
+        writeLines(updated);
+    }
+
+    // ── Private CSV I/O helpers ───────────────────────────────────────────────
+
+    /** Read the CSV and parse every data row (skips header) into Student objects. */
+    private List<Student> readAllStudents() throws IOException {
+        List<Student> students = new ArrayList<>();
+        List<String> lines = readRawLines();
+        for (String line : lines) {
+            if (line.trim().isEmpty() || line.startsWith("username")) continue;
+            students.add(Student.fromCsvRow(line));
+        }
+        return students;
+    }
+
+    /** Read all raw lines from users.csv (including the header). */
+    private List<String> readRawLines() throws IOException {
+        List<String> lines = new ArrayList<>();
+        File file = new File(FILE_PATH);
+        if (!file.exists()) return lines;
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (!line.trim().isEmpty()) lines.add(line);
+            }
+        }
+        return lines;
+    }
+
+    /** Overwrite users.csv with the provided list of lines. */
+    private void writeLines(List<String> lines) throws IOException {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH, false))) {
+            for (String line : lines) {
+                bw.write(line);
+                bw.newLine();
+            }
+        }
+    }
+}
