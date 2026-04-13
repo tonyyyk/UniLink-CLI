@@ -6,9 +6,9 @@
 const API = '';   // same origin — empty prefix
 
 // ── Session state ─────────────────────────────────────────────────────────
-let token    = localStorage.getItem('unilink_token')    || null;
-let username = localStorage.getItem('unilink_username') || null;
-let userRole = localStorage.getItem('unilink_role')     || null;
+let token    = sessionStorage.getItem('unilink_token')    || null;
+let username = sessionStorage.getItem('unilink_username') || null;
+let userRole = sessionStorage.getItem('unilink_role')     || null;
 let currentConvPartner  = null;
 let convRefreshInterval = null;
 let contactsRefreshInterval = null;
@@ -90,9 +90,9 @@ document.getElementById('login-form').addEventListener('submit', async e => {
   token    = r.data.token;
   username = r.data.username;
   userRole = r.data.role;
-  localStorage.setItem('unilink_token',    token);
-  localStorage.setItem('unilink_username', username);
-  localStorage.setItem('unilink_role',     userRole);
+  sessionStorage.setItem('unilink_token',    token);
+  sessionStorage.setItem('unilink_username', username);
+  sessionStorage.setItem('unilink_role',     userRole);
   enterApp();
 });
 
@@ -129,9 +129,9 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 
 function clearSession() {
   token = username = userRole = null;
-  localStorage.removeItem('unilink_token');
-  localStorage.removeItem('unilink_username');
-  localStorage.removeItem('unilink_role');
+  sessionStorage.removeItem('unilink_token');
+  sessionStorage.removeItem('unilink_username');
+  sessionStorage.removeItem('unilink_role');
   currentConvPartner = null;
   clearInterval(convRefreshInterval);
   clearInterval(contactsRefreshInterval);
@@ -351,9 +351,13 @@ async function loadContacts() {
 async function openConversation(partner) {
   currentConvPartner = partner;
 
-  // Highlight active contact
+  // Highlight active contact and clear its unread badge immediately (optimistic update)
   document.querySelectorAll('.contact-item').forEach(li => {
     li.classList.toggle('active', li.dataset.username === partner);
+    if (li.dataset.username === partner) {
+      const badge = li.querySelector('.contact-unread-badge');
+      if (badge) badge.remove();
+    }
   });
 
   document.getElementById('no-conversation').classList.add('hidden');
@@ -803,7 +807,7 @@ function hideAlert(id) {
 
 (function init() {
   if (token && username) {
-    // Restore session if token exists in localStorage
+    // Restore session if token exists in sessionStorage
     enterApp();
   } else {
     showPage('page-login');

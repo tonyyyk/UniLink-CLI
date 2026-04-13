@@ -11,21 +11,24 @@ A Java application for university students to find study partners, exchange mess
 | Authentication | Register and login; credentials stored in CSV |
 | Profile Management | Set your Major, Strengths, and Weaknesses |
 | Partner Matching | Two algorithms rank partners by compatibility score |
-| Messaging | Real-time chat; unread badge per contact; notification toasts are clickable to open the conversation |
+| Messaging | Real-time chat; admin ↔ user messaging fully supported; unread badge per contact; notification toasts are clickable to open the conversation |
 | Study Groups | Create, browse, and join study groups |
 | Report System | Report a user from partner cards or from inside a conversation; admins review and dismiss |
 | Admin Panel | Suspend/reinstate accounts; Users tab + Reports tab |
 | Settings | Change password or delete account (Account Security); edit profile (Manage Profile) |
 | Help / Service Manual | In-app FAQ and how-to guide accessible from the sidebar |
-| Web GUI | Full browser-based SPA — same features, no CLI required |
+| Web GUI | Full browser-based SPA — same features, no CLI required; each browser tab holds an independent session (multi-account testing supported) |
+| Demo Accounts | Five seed users (alice, bob, carol, dave, emma) created on first run for demonstration |
 
 ---
 
 ## Requirements
 
-- **Java 24 or higher** (uses JDK built-in HTTP server — no external libraries)
+- **Java 11 or higher** (uses the JDK built-in HTTP server — no external libraries needed)
 - A modern web browser (Chrome, Firefox, Edge, Safari) for the web GUI
-- No Maven, Gradle, npm, or any build tools needed
+- No Maven, Gradle, npm, or any other build tools needed
+
+> **Tested on Java 11, 17, 21, and 24.** If you are unsure which version you have, run `java -version` in your terminal.
 
 ---
 
@@ -65,6 +68,17 @@ The server runs until you press `Ctrl+C`.
 Username: admin
 Password: admin123
 ```
+
+**Demo accounts (seeded on first run):**
+```
+alice / alice123  — CS, strengths: Java, Algorithms
+bob   / bob123    — Mathematics, strengths: Calculus, Statistics
+carol / carol123  — Physics, strengths: Mathematics, Lab Work
+dave  / dave123   — CS, strengths: Networking, Databases
+emma  / emma123   — Data Science, strengths: Python, Statistics, Machine Learning
+```
+
+> **Multi-account testing:** Open multiple browser tabs — each tab keeps its own independent session, so you can be logged in as different users simultaneously.
 
 ---
 
@@ -286,9 +300,12 @@ lsof -ti:8080 | xargs kill
 **`javac` not found**
 Make sure Java JDK (not just JRE) is installed and `JAVA_HOME` / `PATH` is set correctly.
 ```bash
-java -version    # should print 17 or higher
+java -version    # should print 11 or higher
 javac -version   # should match
 ```
+
+**Which Java version should I install?**
+Any of these work: Java 11 LTS, Java 17 LTS, Java 21 LTS, or Java 24. Download from [Adoptium (Temurin)](https://adoptium.net) — free, open source, works on Windows/macOS/Linux.
 
 **`find` command not available (Windows)**
 Use the Windows compile command shown in the Build section above, or use an IDE (IntelliJ IDEA, Eclipse, VS Code with Java Extension Pack) to compile and run.

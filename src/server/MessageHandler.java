@@ -117,7 +117,7 @@ public class MessageHandler extends BaseHandler implements HttpHandler {
             unreadMap.merge(m.getSender(), 1, Integer::sum);
         }
 
-        List<Student> active = UserManager.getInstance().getAllActiveStudents();
+        List<Student> active = UserManager.getInstance().getAllUsers();
         List<String> contactJsons = new ArrayList<>();
         for (Student s : active) {
             if (!s.getUsername().equalsIgnoreCase(student.getUsername())) {

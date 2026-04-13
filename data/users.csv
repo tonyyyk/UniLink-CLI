@@ -1,6 +1,0 @@
-username,password,major,strengths,weaknesses,role,status
-admin,admin123,-,-,-,ADMIN,NORMAL
-alice,pass123,CS,-,-,USER,NORMAL
-bob,bob456,Maths,-,-,USER,NORMAL
-admin123,admin123,CS,-,-,USER,NORMAL
-tonyyyk,Tonyyyk,CS,JAVA,DataBase,USER,NORMAL

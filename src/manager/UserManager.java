@@ -53,9 +53,13 @@ public class UserManager {
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
                 bw.write(CSV_HEADER);
                 bw.newLine();
-                // Seed a default admin account
-                bw.write("admin,admin123,-,-,-,ADMIN,NORMAL");
-                bw.newLine();
+                // Seed default admin + demo users
+                bw.write("admin,admin123,-,-,-,ADMIN,NORMAL");             bw.newLine();
+                bw.write("alice,alice123,Computer Science,Java;Algorithms,Networking;Databases,USER,NORMAL");  bw.newLine();
+                bw.write("bob,bob123,Mathematics,Calculus;Statistics,Programming;Physics,USER,NORMAL");        bw.newLine();
+                bw.write("carol,carol123,Physics,Mathematics;Lab Work,Programming;Statistics,USER,NORMAL");    bw.newLine();
+                bw.write("dave,dave123,Computer Science,Networking;Databases,Algorithms;UI Design,USER,NORMAL"); bw.newLine();
+                bw.write("emma,emma123,Data Science,Python;Statistics;Machine Learning,Java;Networking,USER,NORMAL"); bw.newLine();
             }
         }
     }

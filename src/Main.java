@@ -83,7 +83,7 @@ public class Main {
                 int authChoice = CLIHelper.readInt(scanner, 1, 3);
 
                 switch (authChoice) {
-                    case 1 -> {
+                    case 1:
                         // LoginCommand will call the onLoginSuccess callback on success,
                         // which in turn runs the main-menu loop for the logged-in student.
                         Command loginCmd = new LoginCommand(
@@ -92,12 +92,14 @@ public class Main {
                                                        groupManager, scanner)
                         );
                         loginCmd.execute();
-                    }
-                    case 2 -> new RegisterCommand(userManager, scanner).execute();
-                    case 3 -> {
+                        break;
+                    case 2:
+                        new RegisterCommand(userManager, scanner).execute();
+                        break;
+                    case 3:
                         System.out.println("\n  Thank you for using UniLink. Goodbye!");
                         appRunning = false;
-                    }
+                        break;
                 }
             }
 

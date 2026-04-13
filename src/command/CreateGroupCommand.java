@@ -46,11 +46,11 @@ public class CreateGroupCommand implements Command {
 
             int choice = CLIHelper.readInt(scanner, 1, 5);
             switch (choice) {
-                case 1 -> createGroup();
-                case 2 -> browseGroups();
-                case 3 -> myGroups();
-                case 4 -> joinGroup();
-                case 5 -> running = false;
+                case 1: createGroup();    break;
+                case 2: browseGroups();   break;
+                case 3: myGroups();       break;
+                case 4: joinGroup();      break;
+                case 5: running = false;  break;
             }
         }
     }

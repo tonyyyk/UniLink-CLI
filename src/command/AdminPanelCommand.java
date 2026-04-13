@@ -52,10 +52,10 @@ public class AdminPanelCommand implements Command {
 
             int choice = CLIHelper.readInt(scanner, 1, 4);
             switch (choice) {
-                case 1 -> listAllUsers();
-                case 2 -> changeUserStatus(false);
-                case 3 -> changeUserStatus(true);
-                case 4 -> running = false;
+                case 1: listAllUsers();           break;
+                case 2: changeUserStatus(false);  break;
+                case 3: changeUserStatus(true);   break;
+                case 4: running = false;          break;
             }
         }
     }
