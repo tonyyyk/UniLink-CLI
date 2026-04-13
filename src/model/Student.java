@@ -28,8 +28,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *    time the student returns to the main menu — making delivery asynchronous.
  *
  * CSV format (users.csv):
- *   username,password,major,strengths,weaknesses,role,status
- *   Strengths and weaknesses are semicolon-delimited within the field.
+ *   username,password,major,strengths,weaknesses,role,status[,dateOfBirth,gender,hobbies,introduction]
+ *   Strengths, weaknesses, and hobbies are semicolon-delimited within the field.
+ *   The last 4 fields are optional for backward compatibility.
  */
 public class Student implements Observer {
 
@@ -41,6 +42,10 @@ public class Student implements Observer {
     private List<String> strengths;
     private List<String> weaknesses;
     private String       role;        // "USER" or "ADMIN"
+    private String       dateOfBirth; // e.g. "2000-05-15"
+    private String       gender;      // e.g. "Male", "Female", "Other", "Prefer not to say"
+    private List<String> hobbies;
+    private String       introduction;
 
     // STATE PATTERN: the state object encapsulates all account-status behaviour
     private StudentState state;
@@ -54,13 +59,35 @@ public class Student implements Observer {
     public Student(String username, String password, String major,
                    List<String> strengths, List<String> weaknesses,
                    String role, StudentState state) {
-        this.username   = username;
-        this.password   = password;
-        this.major      = major;
-        this.strengths  = new ArrayList<>(strengths);
-        this.weaknesses = new ArrayList<>(weaknesses);
-        this.role       = role;
-        this.state      = state;
+        this.username     = username;
+        this.password     = password;
+        this.major        = major;
+        this.strengths    = new ArrayList<>(strengths);
+        this.weaknesses   = new ArrayList<>(weaknesses);
+        this.role         = role;
+        this.state        = state;
+        this.dateOfBirth  = "";
+        this.gender       = "";
+        this.hobbies      = new ArrayList<>();
+        this.introduction = "";
+    }
+
+    public Student(String username, String password, String major,
+                   List<String> strengths, List<String> weaknesses,
+                   String role, StudentState state,
+                   String dateOfBirth, String gender,
+                   List<String> hobbies, String introduction) {
+        this.username     = username;
+        this.password     = password;
+        this.major        = major;
+        this.strengths    = new ArrayList<>(strengths);
+        this.weaknesses   = new ArrayList<>(weaknesses);
+        this.role         = role;
+        this.state        = state;
+        this.dateOfBirth  = dateOfBirth  != null ? dateOfBirth  : "";
+        this.gender       = gender       != null ? gender       : "";
+        this.hobbies      = hobbies      != null ? new ArrayList<>(hobbies) : new ArrayList<>();
+        this.introduction = introduction != null ? introduction : "";
     }
 
     // ── OBSERVER PATTERN ──────────────────────────────────────────────────────
@@ -138,9 +165,14 @@ public class Student implements Observer {
     public String toCsvRow() {
         String strengthsField  = strengths.isEmpty()  ? "-" : String.join(";", strengths);
         String weaknessesField = weaknesses.isEmpty() ? "-" : String.join(";", weaknesses);
+        String hobbiesField    = hobbies.isEmpty()    ? "-" : String.join(";", hobbies);
         return username + "," + password + "," + major + "," +
                strengthsField + "," + weaknessesField + "," +
-               role + "," + state.getStateName();
+               role + "," + state.getStateName() + "," +
+               (dateOfBirth.isEmpty()  ? "-" : dateOfBirth)  + "," +
+               (gender.isEmpty()       ? "-" : gender)       + "," +
+               hobbiesField + "," +
+               (introduction.isEmpty() ? "-" : introduction);
     }
 
     /**
@@ -148,7 +180,7 @@ public class Student implements Observer {
      * Reconstructs the correct StudentState based on the stored status string.
      */
     public static Student fromCsvRow(String line) {
-        String[] parts = line.split(",", 7);
+        String[] parts = line.split(",", 11);
         String username = parts[0].trim();
         String password = parts[1].trim();
         String major    = parts[2].trim();
@@ -171,20 +203,38 @@ public class Student implements Observer {
                 ? new SuspendedState()
                 : new NormalState();
 
-        return new Student(username, password, major, strengths, weaknesses, role, state);
+        // Optional extended profile fields (backward compatible)
+        String dateOfBirth  = parts.length > 7  && !parts[7].trim().equals("-")  ? parts[7].trim()  : "";
+        String gender       = parts.length > 8  && !parts[8].trim().equals("-")  ? parts[8].trim()  : "";
+        List<String> hobbies = new ArrayList<>();
+        if (parts.length > 9 && !parts[9].trim().equals("-") && !parts[9].trim().isEmpty()) {
+            hobbies.addAll(Arrays.asList(parts[9].trim().split(";")));
+        }
+        String introduction = parts.length > 10 && !parts[10].trim().equals("-") ? parts[10].trim() : "";
+
+        return new Student(username, password, major, strengths, weaknesses, role, state,
+                           dateOfBirth, gender, hobbies, introduction);
     }
 
     // ── Getters / Setters ─────────────────────────────────────────────────────
 
-    public String       getPassword()   { return password; }
-    public String       getMajor()      { return major; }
-    public List<String> getStrengths()  { return strengths; }
-    public List<String> getWeaknesses() { return weaknesses; }
-    public String       getRole()       { return role; }
+    public String       getPassword()    { return password; }
+    public String       getMajor()       { return major; }
+    public List<String> getStrengths()   { return strengths; }
+    public List<String> getWeaknesses()  { return weaknesses; }
+    public String       getRole()        { return role; }
+    public String       getDateOfBirth() { return dateOfBirth; }
+    public String       getGender()      { return gender; }
+    public List<String> getHobbies()     { return hobbies; }
+    public String       getIntroduction(){ return introduction; }
 
-    public void setMajor(String major)            { this.major = major; }
-    public void setStrengths(List<String> s)      { this.strengths  = new ArrayList<>(s); }
-    public void setWeaknesses(List<String> w)     { this.weaknesses = new ArrayList<>(w); }
+    public void setMajor(String major)             { this.major = major; }
+    public void setStrengths(List<String> s)       { this.strengths    = new ArrayList<>(s); }
+    public void setWeaknesses(List<String> w)      { this.weaknesses   = new ArrayList<>(w); }
+    public void setDateOfBirth(String dob)         { this.dateOfBirth  = dob  != null ? dob  : ""; }
+    public void setGender(String gender)           { this.gender       = gender != null ? gender : ""; }
+    public void setHobbies(List<String> hobbies)   { this.hobbies      = hobbies != null ? new ArrayList<>(hobbies) : new ArrayList<>(); }
+    public void setIntroduction(String intro)      { this.introduction = intro != null ? intro : ""; }
 
     public boolean isAdmin() { return "ADMIN".equalsIgnoreCase(role); }
 }

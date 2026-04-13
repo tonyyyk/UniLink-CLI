@@ -1,5 +1,6 @@
 import command.*;
 import manager.GroupManager;
+import manager.GroupMessageManager;
 import manager.MessageManager;
 import manager.ReportManager;
 import manager.UserManager;
@@ -38,6 +39,7 @@ public class Main {
                 UserManager.getInstance().initialise();
                 MessageManager.getInstance().initialise();
                 GroupManager.getInstance().initialise();
+                GroupMessageManager.getInstance().initialise();
                 ReportManager.getInstance().initialise();
 
                 new ApiServer(8080).start();

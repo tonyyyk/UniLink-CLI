@@ -35,7 +35,11 @@ public class JsonUtil {
             "\"canSendMessage\":" + s.canSendMessage() + "," +
             "\"canAppearInSearch\":" + s.canAppearInSearch() + "," +
             "\"strengths\":" + toJsonStringArray(s.getStrengths()) + "," +
-            "\"weaknesses\":" + toJsonStringArray(s.getWeaknesses()) +
+            "\"weaknesses\":" + toJsonStringArray(s.getWeaknesses()) + "," +
+            "\"dateOfBirth\":\"" + escape(s.getDateOfBirth()) + "\"," +
+            "\"gender\":\"" + escape(s.getGender()) + "\"," +
+            "\"hobbies\":" + toJsonStringArray(s.getHobbies()) + "," +
+            "\"introduction\":\"" + escape(s.getIntroduction()) + "\"" +
         "}";
     }
 

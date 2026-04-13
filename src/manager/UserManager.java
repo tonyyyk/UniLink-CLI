@@ -173,10 +173,15 @@ public class UserManager {
             Student s = Student.fromCsvRow(line);
             if (s.getUsername().equalsIgnoreCase(username)) {
                 if (!s.getPassword().equals(oldPassword)) return false; // wrong old password
-                // Rebuild row with new password in position [1]
-                String[] parts = line.split(",", 7);
-                parts[1] = newPassword;
-                updated.add(String.join(",", parts));
+                // Create updated student with new password and re-serialize
+                Student updated2 = new Student(
+                        s.getUsername(), newPassword, s.getMajor(),
+                        s.getStrengths(), s.getWeaknesses(), s.getRole(),
+                        s.getStateName().equalsIgnoreCase("SUSPENDED")
+                            ? new state.SuspendedState() : new state.NormalState(),
+                        s.getDateOfBirth(), s.getGender(), s.getHobbies(), s.getIntroduction()
+                );
+                updated.add(updated2.toCsvRow());
                 changed = true;
             } else {
                 updated.add(line);
@@ -247,10 +252,10 @@ public class UserManager {
             if (line.startsWith(CSV_HEADER)) continue;
             Student s = Student.fromCsvRow(line);
             if (s.getUsername().equalsIgnoreCase(username)) {
-                // Rebuild the row with the new status value
-                String[] parts = line.split(",", 7);
-                parts[6] = newStatus;
-                updated.add(String.join(",", parts));
+                // Use toCsvRow so all fields (including extended ones) are preserved
+                s.suspend();   // temporarily set to match newStatus
+                if (newStatus.equalsIgnoreCase("NORMAL")) s.reinstate();
+                updated.add(s.toCsvRow());
             } else {
                 updated.add(line);
             }
@@ -266,6 +271,8 @@ public class UserManager {
         List<String> lines = readRawLines();
         for (String line : lines) {
             if (line.trim().isEmpty() || line.startsWith("username")) continue;
+            // Skip malformed rows that don't have at least 7 comma-separated fields
+            if (line.split(",", -1).length < 7) continue;
             students.add(Student.fromCsvRow(line));
         }
         return students;

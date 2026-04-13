@@ -132,6 +132,14 @@
               <span class="tag" id="pv-role">USER</span>
               <span class="status-badge" id="pv-status">NORMAL</span>
             </div>
+            <div class="profile-details-row">
+              <span id="pv-dob-row" class="profile-detail hidden"><span class="detail-label">Birthday:</span> <span id="pv-dob">—</span></span>
+              <span id="pv-gender-row" class="profile-detail hidden"><span class="detail-label">Gender:</span> <span id="pv-gender">—</span></span>
+            </div>
+            <div id="pv-intro-row" class="profile-intro hidden">
+              <span class="detail-label">About me:</span>
+              <p id="pv-intro">—</p>
+            </div>
           </div>
         </div>
         <div class="skills-grid">
@@ -142,6 +150,10 @@
           <div class="skills-card">
             <h4>Weaknesses 📚</h4>
             <div id="pv-weaknesses" class="tag-list"><span class="tag-empty">None listed</span></div>
+          </div>
+          <div class="skills-card">
+            <h4>Hobbies 🎯</h4>
+            <div id="pv-hobbies" class="tag-list"><span class="tag-empty">None listed</span></div>
           </div>
         </div>
         <div class="capabilities-card">
@@ -159,12 +171,34 @@
             <input id="edit-major" type="text" placeholder="e.g. Computer Science" />
           </div>
           <div class="form-group">
+            <label for="edit-dob">Date of Birth</label>
+            <input id="edit-dob" type="date" />
+          </div>
+          <div class="form-group">
+            <label for="edit-gender">Gender</label>
+            <select id="edit-gender">
+              <option value="">— Select —</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+              <option value="Prefer not to say">Prefer not to say</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label for="edit-strengths">Strengths <small>(comma-separated)</small></label>
             <input id="edit-strengths" type="text" placeholder="e.g. Java, Algorithms, Math" />
           </div>
           <div class="form-group">
             <label for="edit-weaknesses">Weaknesses <small>(comma-separated)</small></label>
             <input id="edit-weaknesses" type="text" placeholder="e.g. Databases, Networks" />
+          </div>
+          <div class="form-group">
+            <label for="edit-hobbies">Hobbies <small>(comma-separated)</small></label>
+            <input id="edit-hobbies" type="text" placeholder="e.g. Reading, Hiking, Gaming" />
+          </div>
+          <div class="form-group">
+            <label for="edit-introduction">Introduction</label>
+            <textarea id="edit-introduction" rows="3" placeholder="Tell others about yourself..."></textarea>
           </div>
           <div class="btn-row">
             <button id="save-profile-btn" class="btn btn-primary">Save Changes</button>
@@ -473,6 +507,21 @@
     <div class="btn-row">
       <button id="confirm-create-group" class="btn btn-primary">Create</button>
       <button class="btn btn-outline modal-close" data-modal="modal-create-group">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Group Chat Modal -->
+<div id="modal-group-chat" class="modal-overlay hidden">
+  <div class="modal chat-modal">
+    <div class="modal-header">
+      <h3 id="group-chat-title">Group Chat</h3>
+      <button class="modal-close" data-modal="modal-group-chat">✕</button>
+    </div>
+    <div id="group-chat-messages" class="chat-messages"></div>
+    <div class="chat-input-row">
+      <input id="group-chat-input" type="text" placeholder="Type a message..." />
+      <button id="group-chat-send" class="btn btn-primary">Send</button>
     </div>
   </div>
 </div>

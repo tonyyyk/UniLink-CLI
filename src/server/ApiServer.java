@@ -27,6 +27,7 @@ public class ApiServer {
         server.createContext("/api/match",         new MatchHandler());
         server.createContext("/api/messages",      new MessageHandler());
         server.createContext("/api/notifications", new NotifyHandler());
+        server.createContext("/api/groups/chat",   new GroupMessageHandler());
         server.createContext("/api/groups",        new GroupHandler());
         server.createContext("/api/admin",         new AdminHandler());
         server.createContext("/api/reports",       new ReportHandler());

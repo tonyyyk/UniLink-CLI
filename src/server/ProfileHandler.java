@@ -60,6 +60,20 @@ public class ProfileHandler extends BaseHandler implements HttpHandler {
             student.setWeaknesses(weaknesses);
         }
 
+        String dob = JsonUtil.parseString(body, "dateOfBirth");
+        if (dob != null) student.setDateOfBirth(dob);
+
+        String gender = JsonUtil.parseString(body, "gender");
+        if (gender != null) student.setGender(gender);
+
+        if (body.contains("\"hobbies\"")) {
+            List<String> hobbies = JsonUtil.parseStringArray(body, "hobbies");
+            student.setHobbies(hobbies);
+        }
+
+        String intro = JsonUtil.parseString(body, "introduction");
+        if (intro != null) student.setIntroduction(intro);
+
         UserManager.getInstance().updateProfile(student);
         sendJson(ex, 200, "{\"success\":true}");
     }

@@ -14,6 +14,8 @@ let convRefreshInterval = null;
 let contactsRefreshInterval = null;
 let notifyInterval      = null;
 let currentSection      = 'profile';
+let currentGroupId      = null;
+let groupChatInterval   = null;
 
 // ══════════════════════════════════════════════════════════════ API HELPERS ══
 
@@ -133,9 +135,11 @@ function clearSession() {
   sessionStorage.removeItem('unilink_username');
   sessionStorage.removeItem('unilink_role');
   currentConvPartner = null;
+  currentGroupId = null;
   clearInterval(convRefreshInterval);
   clearInterval(contactsRefreshInterval);
   clearInterval(notifyInterval);
+  clearInterval(groupChatInterval);
 }
 
 // ════════════════════════════════════════════════════════════════ ENTER APP ══
@@ -203,10 +207,47 @@ async function loadProfile() {
      </div>`
   ).join('');
 
+  // Date of Birth
+  const dobRow = document.getElementById('pv-dob-row');
+  if (p.dateOfBirth) {
+    document.getElementById('pv-dob').textContent = p.dateOfBirth;
+    dobRow.classList.remove('hidden');
+  } else {
+    dobRow.classList.add('hidden');
+  }
+
+  // Gender
+  const genderRow = document.getElementById('pv-gender-row');
+  if (p.gender) {
+    document.getElementById('pv-gender').textContent = p.gender;
+    genderRow.classList.remove('hidden');
+  } else {
+    genderRow.classList.add('hidden');
+  }
+
+  // Introduction
+  const introRow = document.getElementById('pv-intro-row');
+  if (p.introduction) {
+    document.getElementById('pv-intro').textContent = p.introduction;
+    introRow.classList.remove('hidden');
+  } else {
+    introRow.classList.add('hidden');
+  }
+
+  // Hobbies
+  const hobbiesEl = document.getElementById('pv-hobbies');
+  hobbiesEl.innerHTML = p.hobbies && p.hobbies.length
+    ? p.hobbies.map(h => `<span class="tag">${esc(h)}</span>`).join('')
+    : '<span class="tag-empty">None listed</span>';
+
   // Pre-fill edit form
-  document.getElementById('edit-major').value     = p.major || '';
-  document.getElementById('edit-strengths').value  = (p.strengths  || []).join(', ');
-  document.getElementById('edit-weaknesses').value = (p.weaknesses || []).join(', ');
+  document.getElementById('edit-major').value        = p.major || '';
+  document.getElementById('edit-dob').value          = p.dateOfBirth || '';
+  document.getElementById('edit-gender').value       = p.gender || '';
+  document.getElementById('edit-strengths').value    = (p.strengths  || []).join(', ');
+  document.getElementById('edit-weaknesses').value   = (p.weaknesses || []).join(', ');
+  document.getElementById('edit-hobbies').value      = (p.hobbies    || []).join(', ');
+  document.getElementById('edit-introduction').value = p.introduction || '';
 }
 
 // Edit / Save Profile
@@ -224,13 +265,18 @@ document.getElementById('cancel-edit-btn').addEventListener('click', () => {
 });
 
 document.getElementById('save-profile-btn').addEventListener('click', async () => {
-  const major     = document.getElementById('edit-major').value.trim();
-  const strengths = document.getElementById('edit-strengths').value
-                      .split(',').map(s => s.trim()).filter(Boolean);
-  const weaknesses = document.getElementById('edit-weaknesses').value
-                       .split(',').map(s => s.trim()).filter(Boolean);
+  const major        = document.getElementById('edit-major').value.trim();
+  const dateOfBirth  = document.getElementById('edit-dob').value.trim();
+  const gender       = document.getElementById('edit-gender').value;
+  const strengths    = document.getElementById('edit-strengths').value
+                         .split(',').map(s => s.trim()).filter(Boolean);
+  const weaknesses   = document.getElementById('edit-weaknesses').value
+                         .split(',').map(s => s.trim()).filter(Boolean);
+  const hobbies      = document.getElementById('edit-hobbies').value
+                         .split(',').map(s => s.trim()).filter(Boolean);
+  const introduction = document.getElementById('edit-introduction').value.trim();
 
-  const r = await put('/api/profile', { major, strengths, weaknesses });
+  const r = await put('/api/profile', { major, dateOfBirth, gender, strengths, weaknesses, hobbies, introduction });
   if (!r.ok) {
     showAlert('profile-edit-error', r.data.error || 'Update failed');
     return;
@@ -461,7 +507,8 @@ function renderGroups(containerId, groups) {
       <div class="group-footer">
         <span class="group-members">👥 ${g.members.length} member${g.members.length !== 1 ? 's' : ''}</span>
         ${g.isMember
-          ? '<span class="tag" style="background:var(--success-light);color:var(--success)">✓ Member</span>'
+          ? `<span class="tag" style="background:var(--success-light);color:var(--success)">✓ Member</span>
+             <button class="btn btn-primary btn-sm group-chat-btn" onclick="openGroupChat(${g.id}, '${esc(g.name)}')">💬 Chat</button>`
           : `<button class="btn btn-primary btn-sm" onclick="joinGroup(${g.id})">Join</button>`}
       </div>
     </div>
@@ -477,6 +524,68 @@ async function joinGroup(groupId) {
   toast('Joined!', 'You have joined the group.', 'success');
   loadGroups();
 }
+
+// ── Group Chat ────────────────────────────────────────────────────────────────
+
+function openGroupChat(groupId, groupName) {
+  currentGroupId = groupId;
+  document.getElementById('group-chat-title').textContent = groupName + ' — Group Chat';
+  document.getElementById('group-chat-messages').innerHTML = '';
+  document.getElementById('group-chat-input').value = '';
+  document.getElementById('modal-group-chat').classList.remove('hidden');
+
+  clearInterval(groupChatInterval);
+  loadGroupMessages(groupId);
+  groupChatInterval = setInterval(() => loadGroupMessages(groupId), 3000);
+}
+
+async function loadGroupMessages(groupId) {
+  const r = await get('/api/groups/chat?groupId=' + groupId);
+  if (!r.ok) return;
+
+  const container = document.getElementById('group-chat-messages');
+  const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 10;
+
+  const msgs = r.data.messages || [];
+  if (msgs.length === 0) {
+    container.innerHTML = '<p class="no-group-msgs">No messages yet. Say hello!</p>';
+    return;
+  }
+
+  container.innerHTML = msgs.map(m => {
+    const isSent = m.sender === username;
+    return `
+      <div class="msg-bubble ${isSent ? 'sent' : 'received'}">
+        ${!isSent ? `<div class="group-msg-sender">${esc(m.sender)}</div>` : ''}
+        <div>${esc(m.content)}</div>
+        <div class="msg-meta">${esc(m.timestamp)}</div>
+      </div>
+    `;
+  }).join('');
+
+  if (wasAtBottom || msgs.length <= 5) {
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+async function sendGroupMessage() {
+  const input = document.getElementById('group-chat-input');
+  const content = input.value.trim();
+  if (!content || currentGroupId === null) return;
+
+  const r = await post('/api/groups/chat', { groupId: currentGroupId, content });
+  if (!r.ok) {
+    toast('Send failed', r.data.error || 'Could not send message', 'error');
+    return;
+  }
+  input.value = '';
+  await loadGroupMessages(currentGroupId);
+}
+
+document.getElementById('group-chat-send').addEventListener('click', sendGroupMessage);
+document.getElementById('group-chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendGroupMessage();
+});
 
 // Tabs
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -497,7 +606,13 @@ document.getElementById('create-group-btn').addEventListener('click', () => {
 document.querySelectorAll('.modal-close').forEach(btn => {
   btn.addEventListener('click', () => {
     const modalId = btn.dataset.modal;
-    if (modalId) document.getElementById(modalId).classList.add('hidden');
+    if (modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+      if (modalId === 'modal-group-chat') {
+        clearInterval(groupChatInterval);
+        currentGroupId = null;
+      }
+    }
   });
 });
 
