@@ -1,6 +1,6 @@
 # UniLink — Study Partner Finding System
 
-A command-line Java application for CityU Software Design course. UniLink helps university students find study partners based on complementary skills, exchange messages, and form study groups.
+A Java application for university students to find study partners, exchange messages, and form study groups. Runs as either a **command-line app** or a **web app** served at `http://localhost:8080` — both modes share the same backend code and data files, with zero external dependencies.
 
 ---
 
@@ -8,21 +8,94 @@ A command-line Java application for CityU Software Design course. UniLink helps 
 
 | Feature | Description |
 |---|---|
-| Authentication | Register and login with credentials saved to CSV |
+| Authentication | Register and login; credentials stored in CSV |
 | Profile Management | Set your Major, Strengths, and Weaknesses |
-| Partner Matching | Algorithm ranks potential partners by compatibility score |
-| Asynchronous Chat | Send and receive messages; unread alerts on login |
+| Partner Matching | Two algorithms rank partners by compatibility score |
+| Messaging | Send and receive messages; unread alerts appear in real time |
 | Study Groups | Create, browse, and join study groups |
 | Admin Panel | Admins can suspend or reinstate user accounts |
+| Web GUI | Full browser-based SPA — same features, no CLI required |
+
+---
+
+## Requirements
+
+- **Java 17 or higher** (uses JDK built-in HTTP server — no external libraries)
+- A modern web browser (Chrome, Firefox, Edge, Safari) for the web GUI
+- No Maven, Gradle, npm, or any build tools needed
+
+---
+
+## How to Build and Run
+
+### 1. Compile
+
+From the **project root directory**, run:
+
+```bash
+javac -d out -sourcepath src $(find src -name "*.java" | tr '\n' ' ')
+```
+
+On Windows (Command Prompt):
+```cmd
+for /r src %f in (*.java) do @echo %f >> sources.txt
+javac -d out @sources.txt
+del sources.txt
+```
+
+Compiled `.class` files will be placed in the `out/` directory (created automatically).
+
+---
+
+### 2. Run — Web GUI Mode (recommended)
+
+```bash
+java -cp out Main --web
+```
+
+Then open your browser to: **http://localhost:8080**
+
+The server runs until you press `Ctrl+C`.
+
+**Default admin account:**
+```
+Username: admin
+Password: admin123
+```
+
+---
+
+### 3. Run — CLI Mode (original)
+
+```bash
+java -cp out Main
+```
+
+Launches the original interactive command-line interface. Identical features to the web GUI.
+
+---
+
+## Web GUI Pages
+
+| Page | How to access | What it does |
+|---|---|---|
+| Login / Register | Landing screen | Create an account or sign in |
+| My Profile | Sidebar → My Profile | View and edit your major, strengths, weaknesses |
+| Find Partners | Sidebar → Find Partners | Search for study partners using your chosen matching algorithm |
+| Messages | Sidebar → Messages | Chat with other students; conversations auto-refresh every 3 seconds |
+| Study Groups | Sidebar → Study Groups | Browse all groups, see groups you joined, create a new group |
+| Admin Panel | Sidebar → Admin Panel | (Admin only) Suspend or reinstate user accounts |
+
+Live notifications (e.g. "You have a new message") appear as toast popups — the browser polls for them every 5 seconds using the Observer pattern.
 
 ---
 
 ## Design Patterns
 
 ### 1. State Pattern
-**Files:** [src/state/StudentState.java](src/state/StudentState.java), [src/state/NormalState.java](src/state/NormalState.java), [src/state/SuspendedState.java](src/state/SuspendedState.java)
+**Files:** [src/state/](src/state/)
 
-Manages student account lifecycle. A `Student` delegates behavior to its current `StudentState`:
+Manages student account lifecycle. A `Student` delegates permission checks to its current `StudentState`:
 
 | Capability | NormalState | SuspendedState |
 |---|---|---|
@@ -31,72 +104,60 @@ Manages student account lifecycle. A `Student` delegates behavior to its current
 | Update profile | Yes | Yes |
 
 ### 2. Observer Pattern
-**Files:** [src/observer/Observer.java](src/observer/Observer.java), [src/observer/Subject.java](src/observer/Subject.java), [src/manager/MessageManager.java](src/manager/MessageManager.java), [src/model/Student.java](src/model/Student.java)
+**Files:** [src/observer/](src/observer/), [src/manager/MessageManager.java](src/manager/MessageManager.java), [src/model/Student.java](src/model/Student.java)
 
-`MessageManager` (Subject) holds a map of registered `Student` Observers. When a message is sent, it calls `notifyObservers()` which enqueues a notification on the recipient's `Student` object. The alert `[!] You have N unread message(s).` is displayed the next time the student reaches the main menu.
+`MessageManager` (Subject) holds registered `Student` Observers. When a message is sent, `notifyObservers()` enqueues a notification on the recipient's `Student` object.
+
+- **CLI:** notifications are drained and printed at the top of each main menu loop
+- **Web:** `GET /api/notifications/poll` drains the same queue every 5 seconds and returns JSON; the browser shows a toast popup
 
 ### 3. Strategy Pattern
-**Files:** [src/strategy/MatchingStrategy.java](src/strategy/MatchingStrategy.java), [src/strategy/ComplementaryMatchingStrategy.java](src/strategy/ComplementaryMatchingStrategy.java), [src/strategy/SameMajorMatchingStrategy.java](src/strategy/SameMajorMatchingStrategy.java)
+**Files:** [src/strategy/](src/strategy/)
 
-The matching algorithm can be swapped at runtime without changing the caller:
+The matching algorithm is swapped at runtime by selecting a strategy:
 
-- **Complementary Matching** (default): 20% base + 20% same major + 30% per complementary skill pair
-- **Same Major Matching**: 20% base + 40% same major + 15% per shared strength + 10% per shared weakness
+| Strategy | Scoring |
+|---|---|
+| **Complementary** (default) | 20% base + 20% same major + 30% per complementary skill pair |
+| **Same Major** | 20% base + 40% same major + 15% per shared strength + 10% per shared weakness |
 
 ### 4. Singleton Pattern
-**Files:** [src/manager/UserManager.java](src/manager/UserManager.java), [src/manager/MessageManager.java](src/manager/MessageManager.java), [src/manager/GroupManager.java](src/manager/GroupManager.java)
+**Files:** [src/manager/](src/manager/)
 
-Each manager has a private constructor and a static `getInstance()` method, ensuring exactly one instance manages each CSV file throughout the application lifetime.
+`UserManager`, `MessageManager`, and `GroupManager` each expose a `getInstance()` method and use a private constructor, guaranteeing exactly one instance manages each CSV file.
 
 ### 5. Command Pattern
-**Files:** [src/command/Command.java](src/command/Command.java), all files in [src/command/](src/command/), [src/ui/MenuBuilder.java](src/ui/MenuBuilder.java)
+**Files:** [src/command/](src/command/), [src/ui/MenuBuilder.java](src/ui/MenuBuilder.java)
 
-Each menu action is encapsulated as a `Command` object with `getLabel()` and `execute()`. `MenuBuilder` (the Invoker) only knows the `Command` interface — it renders the menu and dispatches calls without knowing what any command does. New features can be added without modifying `MenuBuilder`.
-
----
-
-## Matching Algorithm
-
-**Complementary Matching Strategy** (default):
-
-```
-Score = 20% (base)
-      + 20% (if same major)
-      + 30% × (number of complementary skill pairs)
-      capped at 100%
-```
-
-A complementary pair means:
-- Your weakness is in the partner's strengths, AND
-- Their weakness is in your strengths
+Every CLI menu action is encapsulated as a `Command` object with `getLabel()` and `execute()`. `MenuBuilder` (the Invoker) renders menus and dispatches calls without knowing what any command does.
 
 ---
 
 ## Project Structure
 
 ```
-Software Design GP/
+project root/
 ├── src/
-│   ├── Main.java                        # Entry point
+│   ├── Main.java                          # Entry point (--web flag or CLI)
 │   ├── model/
-│   │   ├── Student.java                 # Core user model + Observer
-│   │   ├── Message.java                 # Chat message value object
-│   │   └── StudyGroup.java              # Study group value object
+│   │   ├── Student.java                   # Core user model + Observer
+│   │   ├── Message.java                   # Message value object
+│   │   └── StudyGroup.java                # Study group value object
 │   ├── state/
-│   │   ├── StudentState.java            # State Pattern interface
-│   │   ├── NormalState.java             # Full access state
-│   │   └── SuspendedState.java          # Restricted access state
+│   │   ├── StudentState.java              # State interface
+│   │   ├── NormalState.java               # Full-access state
+│   │   └── SuspendedState.java            # Restricted state
 │   ├── observer/
-│   │   ├── Observer.java                # Observer interface
-│   │   └── Subject.java                 # Subject interface
+│   │   ├── Observer.java                  # Observer interface
+│   │   └── Subject.java                   # Subject interface
 │   ├── strategy/
-│   │   ├── MatchingStrategy.java        # Strategy interface
+│   │   ├── MatchingStrategy.java          # Strategy interface
 │   │   ├── ComplementaryMatchingStrategy.java
 │   │   └── SameMajorMatchingStrategy.java
-│   ├── command/
-│   │   ├── Command.java                 # Command interface
-│   │   ├── RegisterCommand.java
+│   ├── command/                           # One class per CLI menu action
+│   │   ├── Command.java
 │   │   ├── LoginCommand.java
+│   │   ├── RegisterCommand.java
 │   │   ├── ViewProfileCommand.java
 │   │   ├── EditProfileCommand.java
 │   │   ├── FindPartnersCommand.java
@@ -106,22 +167,69 @@ Software Design GP/
 │   │   ├── AdminPanelCommand.java
 │   │   └── LogoutCommand.java
 │   ├── manager/
-│   │   ├── UserManager.java             # Singleton — manages users.csv
-│   │   ├── MessageManager.java          # Singleton + Subject — manages messages.csv
-│   │   └── GroupManager.java            # Singleton — manages groups.csv
-│   └── ui/
-│       ├── CLIHelper.java               # Input helpers and display utilities
-│       └── MenuBuilder.java             # Command Pattern Invoker
-├── data/                                # Auto-created at runtime
+│   │   ├── UserManager.java               # Singleton — users.csv
+│   │   ├── MessageManager.java            # Singleton + Subject — messages.csv
+│   │   └── GroupManager.java              # Singleton — groups.csv
+│   ├── ui/
+│   │   ├── CLIHelper.java                 # Input helpers and display utilities
+│   │   └── MenuBuilder.java               # Command pattern Invoker
+│   └── server/                            # Web GUI backend (new)
+│       ├── ApiServer.java                 # Creates HttpServer, registers all routes
+│       ├── SessionManager.java            # Token → Student session map (Singleton)
+│       ├── JsonUtil.java                  # Manual JSON serialisation / parsing
+│       ├── BaseHandler.java               # Shared: auth, CORS, request/response helpers
+│       ├── StaticFileHandler.java         # Serves web/ directory
+│       ├── AuthHandler.java               # /api/auth/login, register, logout
+│       ├── ProfileHandler.java            # GET/PUT /api/profile
+│       ├── MatchHandler.java              # GET /api/match?strategy=
+│       ├── MessageHandler.java            # /api/messages/* endpoints
+│       ├── NotifyHandler.java             # GET /api/notifications/poll
+│       ├── GroupHandler.java              # /api/groups/* endpoints
+│       └── AdminHandler.java              # /api/admin/* endpoints
+├── web/                                   # Browser SPA (served by StaticFileHandler)
+│   ├── index.html                         # Single HTML shell — all pages as divs
+│   ├── style.css                          # Full UI styles (sidebar, chat, cards)
+│   └── app.js                             # All JS: routing, API calls, polling
+├── data/                                  # Auto-created on first run
 │   ├── users.csv
 │   ├── messages.csv
 │   └── groups.csv
-└── out/                                 # Compiled .class files
+└── out/                                   # Compiled .class files (after javac)
 ```
 
 ---
 
-## CSV File Formats
+## REST API Reference (Web Mode)
+
+All endpoints except login/register require:
+```
+Authorization: Bearer <token>
+```
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/auth/login` | Login; returns `{token, username, role, status}` |
+| POST | `/api/auth/register` | Register `{username, password, major}` |
+| POST | `/api/auth/logout` | Invalidate session |
+| GET | `/api/profile` | Get current user's profile |
+| PUT | `/api/profile` | Update `{major, strengths, weaknesses}` |
+| GET | `/api/match?strategy=` | `complementary` or `samemajor` — returns ranked list |
+| GET | `/api/messages/contacts` | List of all users to message |
+| GET | `/api/messages/unread-count` | `{count}` |
+| GET | `/api/messages/conversation?with=` | Full chat history with a user |
+| POST | `/api/messages/send` | Send `{to, content}` |
+| GET | `/api/notifications/poll` | Drain Observer queue, returns `{notifications:[...]}` |
+| GET | `/api/groups` | All groups with membership flag |
+| GET | `/api/groups/mine` | Groups the current user belongs to |
+| POST | `/api/groups/create` | Create `{name, topic}` |
+| POST | `/api/groups/join` | Join `{groupId}` |
+| GET | `/api/admin/users` | All users (admin only) |
+| POST | `/api/admin/suspend` | Suspend `{username}` (admin only) |
+| POST | `/api/admin/reinstate` | Reinstate `{username}` (admin only) |
+
+---
+
+## Data File Formats
 
 **data/users.csv**
 ```
@@ -142,30 +250,25 @@ groupId,groupName,creator,members,topic
 1,CS Study Group,alice,"alice;bob",Algorithms
 ```
 
----
-
-## How to Build and Run
-
-### Compile
-```bash
-# From the project root
-find src -name "*.java" | xargs javac -d out
-```
-
-### Run
-```bash
-java -cp out Main
-```
-
-### Default Admin Account
-```
-Username: admin
-Password: admin123
-```
+Data files are created automatically with seed data on first run.
 
 ---
 
-## Requirements
+## Troubleshooting
 
-- Java 11 or higher
-- No external libraries or databases required — pure Java standard library only
+**Port 8080 already in use**
+```bash
+# macOS / Linux — find and kill the process using port 8080
+lsof -ti:8080 | xargs kill
+```
+
+**`javac` not found**
+Make sure Java JDK (not just JRE) is installed and `JAVA_HOME` / `PATH` is set correctly.
+```bash
+java -version    # should print 17 or higher
+javac -version   # should match
+```
+
+**`find` command not available (Windows)**
+Use the Windows compile command shown in the Build section above, or use an IDE (IntelliJ IDEA, Eclipse, VS Code with Java Extension Pack) to compile and run.
+# UniLink-GUI
