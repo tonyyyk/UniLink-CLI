@@ -3,6 +3,7 @@ import manager.GroupManager;
 import manager.MessageManager;
 import manager.UserManager;
 import model.Student;
+import server.ApiServer;
 import ui.CLIHelper;
 import ui.MenuBuilder;
 
@@ -29,6 +30,23 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
+        // ── Web mode: java -cp out Main --web ─────────────────────────────────
+        if (args.length > 0 && args[0].equals("--web")) {
+            try {
+                new File("data").mkdirs();
+                UserManager.getInstance().initialise();
+                MessageManager.getInstance().initialise();
+                GroupManager.getInstance().initialise();
+
+                new ApiServer(8080).start();
+                System.out.println("  Press Ctrl+C to stop.");
+                Thread.currentThread().join(); // keep JVM alive
+            } catch (Exception e) {
+                System.err.println("[FATAL] Web server error: " + e.getMessage());
+            }
+            return;
+        }
+
         Scanner scanner = new Scanner(System.in);
 
         // ── 1. Bootstrap ──────────────────────────────────────────────────────

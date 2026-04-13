@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UniLink — Study Partner Finder</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ AUTH PAGES ══ -->
+
+<div id="page-login" class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="logo-icon">🔗</span>
+      <h1>UniLink</h1>
+      <p>Study Partner Finder</p>
+    </div>
+    <div id="login-error" class="alert alert-error hidden"></div>
+    <div id="login-success" class="alert alert-success hidden"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="login-username">Username</label>
+        <input id="login-username" type="text" placeholder="Enter your username" required />
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input id="login-password" type="password" placeholder="Enter your password" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Login</button>
+    </form>
+    <p class="auth-switch">Don't have an account? <a href="#" id="goto-register">Register here</a></p>
+    <p class="auth-hint">Default admin: admin / admin123</p>
+  </div>
+</div>
+
+<div id="page-register" class="auth-page hidden">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="logo-icon">🔗</span>
+      <h1>UniLink</h1>
+      <p>Create Account</p>
+    </div>
+    <div id="register-error" class="alert alert-error hidden"></div>
+    <form id="register-form">
+      <div class="form-group">
+        <label for="reg-username">Username</label>
+        <input id="reg-username" type="text" placeholder="Choose a username" required />
+      </div>
+      <div class="form-group">
+        <label for="reg-password">Password</label>
+        <input id="reg-password" type="password" placeholder="Choose a password" required />
+      </div>
+      <div class="form-group">
+        <label for="reg-major">Major</label>
+        <input id="reg-major" type="text" placeholder="e.g. Computer Science" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+    </form>
+    <p class="auth-switch">Already have an account? <a href="#" id="goto-login">Login here</a></p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ MAIN APP SHELL ══ -->
+
+<div id="page-app" class="app hidden">
+
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <span class="logo-icon">🔗</span>
+      <span class="sidebar-title">UniLink</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="avatar" id="nav-avatar">?</div>
+      <div class="sidebar-user-info">
+        <span id="nav-username">—</span>
+        <span id="nav-status" class="status-badge">NORMAL</span>
+      </div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#" class="nav-link active" data-page="profile">
+        <span class="nav-icon">👤</span> My Profile
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="partners">
+        <span class="nav-icon">🔍</span> Find Partners
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="messages">
+        <span class="nav-icon">💬</span> Messages
+        <span id="unread-badge" class="badge hidden">0</span>
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="groups">
+        <span class="nav-icon">👥</span> Study Groups
+      </a></li>
+      <li id="admin-nav-item" class="hidden"><a href="#" class="nav-link" data-page="admin">
+        <span class="nav-icon">⚙️</span> Admin Panel
+      </a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button id="logout-btn" class="btn btn-outline btn-full">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- ── Profile Page ── -->
+    <section id="section-profile" class="page-section">
+      <div class="page-header">
+        <h2>My Profile</h2>
+        <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
+      </div>
+
+      <!-- View Mode -->
+      <div id="profile-view">
+        <div class="profile-card">
+          <div class="profile-avatar" id="profile-avatar-big">?</div>
+          <div class="profile-info">
+            <h3 id="pv-username">—</h3>
+            <div class="profile-meta">
+              <span class="tag tag-major" id="pv-major">—</span>
+              <span class="tag" id="pv-role">USER</span>
+              <span class="status-badge" id="pv-status">NORMAL</span>
+            </div>
+          </div>
+        </div>
+        <div class="skills-grid">
+          <div class="skills-card">
+            <h4>Strengths 💪</h4>
+            <div id="pv-strengths" class="tag-list"><span class="tag-empty">None listed</span></div>
+          </div>
+          <div class="skills-card">
+            <h4>Weaknesses 📚</h4>
+            <div id="pv-weaknesses" class="tag-list"><span class="tag-empty">None listed</span></div>
+          </div>
+        </div>
+        <div class="capabilities-card">
+          <h4>Account Capabilities</h4>
+          <div id="pv-capabilities"></div>
+        </div>
+      </div>
+
+      <!-- Edit Mode -->
+      <div id="profile-edit" class="hidden">
+        <div class="form-card">
+          <div id="profile-edit-error" class="alert alert-error hidden"></div>
+          <div class="form-group">
+            <label for="edit-major">Major</label>
+            <input id="edit-major" type="text" placeholder="e.g. Computer Science" />
+          </div>
+          <div class="form-group">
+            <label for="edit-strengths">Strengths <small>(comma-separated)</small></label>
+            <input id="edit-strengths" type="text" placeholder="e.g. Java, Algorithms, Math" />
+          </div>
+          <div class="form-group">
+            <label for="edit-weaknesses">Weaknesses <small>(comma-separated)</small></label>
+            <input id="edit-weaknesses" type="text" placeholder="e.g. Databases, Networks" />
+          </div>
+          <div class="btn-row">
+            <button id="save-profile-btn" class="btn btn-primary">Save Changes</button>
+            <button id="cancel-edit-btn" class="btn btn-outline">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Find Partners Page ── -->
+    <section id="section-partners" class="page-section hidden">
+      <div class="page-header">
+        <h2>Find Study Partners</h2>
+      </div>
+      <div class="strategy-selector">
+        <label class="strategy-option">
+          <input type="radio" name="strategy" value="complementary" checked />
+          <span>Complementary Skills</span>
+          <small>Find partners who complement your weaknesses</small>
+        </label>
+        <label class="strategy-option">
+          <input type="radio" name="strategy" value="samemajor" />
+          <span>Same Major</span>
+          <small>Find partners in your field</small>
+        </label>
+      </div>
+      <button id="search-partners-btn" class="btn btn-primary">Search Partners</button>
+      <div id="partners-results" class="partners-grid"></div>
+    </section>
+
+    <!-- ── Messages Page ── -->
+    <section id="section-messages" class="page-section hidden">
+      <div class="messages-layout">
+        <!-- Contact list -->
+        <div class="contacts-panel">
+          <div class="contacts-header">
+            <h3>Contacts</h3>
+            <input id="contact-search" type="text" placeholder="Search..." />
+          </div>
+          <ul id="contacts-list" class="contacts-list"></ul>
+        </div>
+        <!-- Conversation panel -->
+        <div class="conversation-panel">
+          <div id="no-conversation" class="no-conv-placeholder">
+            <span>💬</span>
+            <p>Select a contact to start chatting</p>
+          </div>
+          <div id="conv-view" class="hidden">
+            <div class="conv-header">
+              <span id="conv-partner-name">—</span>
+            </div>
+            <div id="messages-list" class="messages-list"></div>
+            <div class="send-box">
+              <input id="msg-input" type="text" placeholder="Type a message..." />
+              <button id="send-msg-btn" class="btn btn-primary">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Study Groups Page ── -->
+    <section id="section-groups" class="page-section hidden">
+      <div class="page-header">
+        <h2>Study Groups</h2>
+        <button id="create-group-btn" class="btn btn-primary">+ Create Group</button>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="all-groups">All Groups</button>
+        <button class="tab-btn" data-tab="my-groups">My Groups</button>
+      </div>
+      <div id="all-groups" class="groups-grid"></div>
+      <div id="my-groups" class="groups-grid hidden"></div>
+    </section>
+
+    <!-- ── Admin Panel Page ── -->
+    <section id="section-admin" class="page-section hidden">
+      <div class="page-header">
+        <h2>Admin Panel</h2>
+        <button id="refresh-users-btn" class="btn btn-outline">Refresh</button>
+      </div>
+      <div id="admin-message" class="alert hidden"></div>
+      <div class="table-container">
+        <table class="data-table" id="users-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Major</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ MODALS ══ -->
+
+<!-- Create Group Modal -->
+<div id="modal-create-group" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Create Study Group</h3>
+      <button class="modal-close" data-modal="modal-create-group">✕</button>
+    </div>
+    <div id="create-group-error" class="alert alert-error hidden"></div>
+    <div class="form-group">
+      <label for="group-name">Group Name</label>
+      <input id="group-name" type="text" placeholder="e.g. Algo Study Squad" />
+    </div>
+    <div class="form-group">
+      <label for="group-topic">Topic</label>
+      <input id="group-topic" type="text" placeholder="e.g. Data Structures" />
+    </div>
+    <div class="btn-row">
+      <button id="confirm-create-group" class="btn btn-primary">Create</button>
+      <button class="btn btn-outline modal-close" data-modal="modal-create-group">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -7,9 +7,9 @@ import state.SuspendedState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Core entity representing a UniLink user.
@@ -46,7 +46,8 @@ public class Student implements Observer {
     private StudentState state;
 
     // OBSERVER PATTERN: pending notifications queued for async delivery
-    private final Queue<String> pendingNotifications = new LinkedList<>();
+    // ConcurrentLinkedQueue used for thread-safety in web server mode
+    private final Queue<String> pendingNotifications = new ConcurrentLinkedQueue<>();
 
     // ── Constructors ──────────────────────────────────────────────────────────
 
@@ -91,6 +92,19 @@ public class Student implements Observer {
 
     public boolean hasPendingNotifications() {
         return !pendingNotifications.isEmpty();
+    }
+
+    /**
+     * Drain all queued notifications into a List and return them.
+     * Used by the web server's notification polling endpoint.
+     * (The CLI uses drainNotifications() which prints to stdout instead.)
+     */
+    public List<String> drainNotificationsAsList() {
+        List<String> result = new ArrayList<>();
+        while (!pendingNotifications.isEmpty()) {
+            result.add(pendingNotifications.poll());
+        }
+        return result;
     }
 
     // ── STATE PATTERN — behaviour delegation ──────────────────────────────────
