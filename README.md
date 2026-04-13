@@ -23,7 +23,7 @@ A Java application for university students to find study partners, exchange mess
 
 ## Requirements
 
-- **Java 17 or higher** (uses JDK built-in HTTP server — no external libraries)
+- **Java 24 or higher** (uses JDK built-in HTTP server — no external libraries)
 - A modern web browser (Chrome, Firefox, Edge, Safari) for the web GUI
 - No Maven, Gradle, npm, or any build tools needed
 
