@@ -436,6 +436,16 @@ input:focus, textarea:focus {
 .contact-name { font-weight: 500; font-size: 13px; }
 .contact-major { font-size: 11px; color: var(--text-muted); }
 
+.contact-unread-badge {
+  background: var(--danger);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
 .conversation-panel { flex: 1; display: flex; flex-direction: column; }
 
 .no-conv-placeholder {
@@ -454,10 +464,13 @@ input:focus, textarea:focus {
 .conv-view { flex: 1; display: flex; flex-direction: column; }
 
 .conv-header {
-  padding: 14px 20px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--border);
   font-weight: 600;
   font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .messages-list {
@@ -641,6 +654,96 @@ input:focus, textarea:focus {
   from { transform: translateX(100%); opacity: 0; }
   to   { transform: translateX(0);    opacity: 1; }
 }
+
+/* ══════════════════════════════════════════════════════════ REPORT STATUS ══ */
+
+.report-status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.report-status.PENDING   { background: var(--warning-light); color: var(--warning); }
+.report-status.DISMISSED { background: var(--bg); color: var(--text-muted); }
+
+/* ════════════════════════════════════════════════════════════════ SETTINGS ══ */
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.settings-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+
+.settings-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.danger-zone {
+  border: 2px solid var(--danger-light);
+}
+
+.danger-zone h3 { color: var(--danger); }
+
+.danger-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  line-height: 1.6;
+}
+
+/* ════════════════════════════════════════════════════════════ SERVICE MANUAL ══ */
+
+.manual-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.manual-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+}
+
+.manual-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+
+.manual-card p, .manual-card li, .manual-card dd {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.manual-card ul, .manual-card ol {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.manual-card strong { color: var(--text); }
+
+.faq-list { display: flex; flex-direction: column; gap: 10px; }
+.faq-list dt { font-weight: 600; color: var(--text); font-size: 13px; }
+.faq-list dd { margin-left: 0; margin-top: 2px; }
 
 /* ════════════════════════════════════════════════════════════════ UTILS ══ */
 

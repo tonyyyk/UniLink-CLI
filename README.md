@@ -11,9 +11,12 @@ A Java application for university students to find study partners, exchange mess
 | Authentication | Register and login; credentials stored in CSV |
 | Profile Management | Set your Major, Strengths, and Weaknesses |
 | Partner Matching | Two algorithms rank partners by compatibility score |
-| Messaging | Send and receive messages; unread alerts appear in real time |
+| Messaging | Real-time chat; unread badge per contact; notification toasts are clickable to open the conversation |
 | Study Groups | Create, browse, and join study groups |
-| Admin Panel | Admins can suspend or reinstate user accounts |
+| Report System | Report a user from partner cards or from inside a conversation; admins review and dismiss |
+| Admin Panel | Suspend/reinstate accounts; Users tab + Reports tab |
+| Settings | Change password or delete account (Account Security); edit profile (Manage Profile) |
+| Help / Service Manual | In-app FAQ and how-to guide accessible from the sidebar |
 | Web GUI | Full browser-based SPA — same features, no CLI required |
 
 ---
@@ -81,12 +84,14 @@ Launches the original interactive command-line interface. Identical features to 
 |---|---|---|
 | Login / Register | Landing screen | Create an account or sign in |
 | My Profile | Sidebar → My Profile | View and edit your major, strengths, weaknesses |
-| Find Partners | Sidebar → Find Partners | Search for study partners using your chosen matching algorithm |
-| Messages | Sidebar → Messages | Chat with other students; conversations auto-refresh every 3 seconds |
+| Find Partners | Sidebar → Find Partners | Search partners; Message or Report any result |
+| Messages | Sidebar → Messages | Real-time chat; unread badge per contact; 🚩 Report button in conversation header |
 | Study Groups | Sidebar → Study Groups | Browse all groups, see groups you joined, create a new group |
-| Admin Panel | Sidebar → Admin Panel | (Admin only) Suspend or reinstate user accounts |
+| Admin Panel | Sidebar → Admin Panel | (Admin only) Users tab: suspend/reinstate; Reports tab: review and dismiss |
+| Settings | Sidebar → Settings | **Manage Profile** tab (major/strengths/weaknesses) + **Account Security** tab (change password, delete account) |
+| Help / Manual | Sidebar → Help / Manual | FAQ, how-to guide, and instructions for contacting admin |
 
-Live notifications (e.g. "You have a new message") appear as toast popups — the browser polls for them every 5 seconds using the Observer pattern.
+Live notifications (e.g. "You have a new message") appear as **clickable** toast popups — clicking opens the conversation directly. The browser polls every 5 seconds using the Observer pattern.
 
 ---
 
@@ -124,7 +129,7 @@ The matching algorithm is swapped at runtime by selecting a strategy:
 ### 4. Singleton Pattern
 **Files:** [src/manager/](src/manager/)
 
-`UserManager`, `MessageManager`, and `GroupManager` each expose a `getInstance()` method and use a private constructor, guaranteeing exactly one instance manages each CSV file.
+`UserManager`, `MessageManager`, `GroupManager`, `ReportManager`, and `SessionManager` each expose a `getInstance()` method and use a private constructor, guaranteeing exactly one instance manages each resource.
 
 ### 5. Command Pattern
 **Files:** [src/command/](src/command/), [src/ui/MenuBuilder.java](src/ui/MenuBuilder.java)
@@ -142,7 +147,8 @@ project root/
 │   ├── model/
 │   │   ├── Student.java                   # Core user model + Observer
 │   │   ├── Message.java                   # Message value object
-│   │   └── StudyGroup.java                # Study group value object
+│   │   ├── StudyGroup.java                # Study group value object
+│   │   └── Report.java                    # Report value object
 │   ├── state/
 │   │   ├── StudentState.java              # State interface
 │   │   ├── NormalState.java               # Full-access state
@@ -169,7 +175,8 @@ project root/
 │   ├── manager/
 │   │   ├── UserManager.java               # Singleton — users.csv
 │   │   ├── MessageManager.java            # Singleton + Subject — messages.csv
-│   │   └── GroupManager.java              # Singleton — groups.csv
+│   │   ├── GroupManager.java              # Singleton — groups.csv
+│   │   └── ReportManager.java             # Singleton — reports.csv
 │   ├── ui/
 │   │   ├── CLIHelper.java                 # Input helpers and display utilities
 │   │   └── MenuBuilder.java               # Command pattern Invoker
@@ -185,7 +192,9 @@ project root/
 │       ├── MessageHandler.java            # /api/messages/* endpoints
 │       ├── NotifyHandler.java             # GET /api/notifications/poll
 │       ├── GroupHandler.java              # /api/groups/* endpoints
-│       └── AdminHandler.java              # /api/admin/* endpoints
+│       ├── AdminHandler.java              # /api/admin/* endpoints
+│       ├── ReportHandler.java             # /api/reports/* endpoints
+│       └── SettingsHandler.java           # /api/settings/password, /api/settings/delete
 ├── web/                                   # Browser SPA (served by StaticFileHandler)
 │   ├── index.html                         # Single HTML shell — all pages as divs
 │   ├── style.css                          # Full UI styles (sidebar, chat, cards)
@@ -193,7 +202,8 @@ project root/
 ├── data/                                  # Auto-created on first run
 │   ├── users.csv
 │   ├── messages.csv
-│   └── groups.csv
+│   ├── groups.csv
+│   └── reports.csv
 └── out/                                   # Compiled .class files (after javac)
 ```
 
@@ -226,6 +236,11 @@ Authorization: Bearer <token>
 | GET | `/api/admin/users` | All users (admin only) |
 | POST | `/api/admin/suspend` | Suspend `{username}` (admin only) |
 | POST | `/api/admin/reinstate` | Reinstate `{username}` (admin only) |
+| POST | `/api/reports/submit` | Submit `{reported, reason}` — any logged-in user |
+| GET | `/api/reports` | All reports (admin only) |
+| POST | `/api/reports/dismiss` | Dismiss `{id}` (admin only) |
+| POST | `/api/settings/password` | Change own password `{oldPassword, newPassword}`; invalidates session |
+| POST | `/api/settings/delete` | Delete own account `{password}`; invalidates session |
 
 ---
 
@@ -248,6 +263,12 @@ alice,bob,2026-04-12T10:30:00,Hello lets study together,false
 ```
 groupId,groupName,creator,members,topic
 1,CS Study Group,alice,"alice;bob",Algorithms
+```
+
+**data/reports.csv**
+```
+id,reporter,reported,reason,timestamp,status
+1,alice,bob,Inappropriate messages,2026-04-13T18:27:00,PENDING
 ```
 
 Data files are created automatically with seed data on first run.

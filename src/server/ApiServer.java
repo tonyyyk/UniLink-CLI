@@ -29,6 +29,8 @@ public class ApiServer {
         server.createContext("/api/notifications", new NotifyHandler());
         server.createContext("/api/groups",        new GroupHandler());
         server.createContext("/api/admin",         new AdminHandler());
+        server.createContext("/api/reports",       new ReportHandler());
+        server.createContext("/api/settings",      new SettingsHandler());
 
         // Static file handler — serves web/ directory
         server.createContext("/", new StaticFileHandler("web"));

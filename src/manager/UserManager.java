@@ -151,6 +151,71 @@ public class UserManager {
         return false;
     }
 
+    // ── Account self-management ───────────────────────────────────────────────
+
+    /**
+     * Change a user's password after verifying the old one.
+     * Returns true on success, false if old password is wrong.
+     */
+    public boolean changePassword(String username, String oldPassword, String newPassword)
+            throws IOException {
+        List<String> lines   = readRawLines();
+        List<String> updated = new ArrayList<>();
+        updated.add(CSV_HEADER);
+        boolean changed = false;
+
+        for (String line : lines) {
+            if (line.trim().isEmpty() || line.startsWith("username")) continue;
+            Student s = Student.fromCsvRow(line);
+            if (s.getUsername().equalsIgnoreCase(username)) {
+                if (!s.getPassword().equals(oldPassword)) return false; // wrong old password
+                // Rebuild row with new password in position [1]
+                String[] parts = line.split(",", 7);
+                parts[1] = newPassword;
+                updated.add(String.join(",", parts));
+                changed = true;
+            } else {
+                updated.add(line);
+            }
+        }
+        if (changed) writeLines(updated);
+        return changed;
+    }
+
+    /**
+     * Delete a user account after password verification.
+     * Returns true on success, false if password is wrong.
+     * Prevents deleting the last ADMIN account.
+     */
+    public boolean deleteAccount(String username, String password) throws IOException {
+        List<Student> all = readAllStudents();
+
+        // Verify password
+        Student target = null;
+        for (Student s : all) {
+            if (s.getUsername().equalsIgnoreCase(username)) { target = s; break; }
+        }
+        if (target == null || !target.getPassword().equals(password)) return false;
+
+        // Prevent deleting the last admin
+        if (target.isAdmin()) {
+            long adminCount = all.stream().filter(Student::isAdmin).count();
+            if (adminCount <= 1) return false;
+        }
+
+        // Rewrite CSV without this user
+        List<String> lines   = readRawLines();
+        List<String> updated = new ArrayList<>();
+        updated.add(CSV_HEADER);
+        for (String line : lines) {
+            if (line.trim().isEmpty() || line.startsWith("username")) continue;
+            Student s = Student.fromCsvRow(line);
+            if (!s.getUsername().equalsIgnoreCase(username)) updated.add(line);
+        }
+        writeLines(updated);
+        return true;
+    }
+
     // ── Admin operations ──────────────────────────────────────────────────────
 
     /**

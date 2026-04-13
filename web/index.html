@@ -96,6 +96,12 @@
       <li id="admin-nav-item" class="hidden"><a href="#" class="nav-link" data-page="admin">
         <span class="nav-icon">⚙️</span> Admin Panel
       </a></li>
+      <li><a href="#" class="nav-link" data-page="settings">
+        <span class="nav-icon">⚙️</span> Settings
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="manual">
+        <span class="nav-icon">📖</span> Help / Manual
+      </a></li>
     </ul>
     <div class="sidebar-footer">
       <button id="logout-btn" class="btn btn-outline btn-full">Logout</button>
@@ -209,6 +215,7 @@
           <div id="conv-view" class="hidden">
             <div class="conv-header">
               <span id="conv-partner-name">—</span>
+              <button id="report-conv-partner-btn" class="btn btn-outline btn-sm">🚩 Report</button>
             </div>
             <div id="messages-list" class="messages-list"></div>
             <div class="send-box">
@@ -240,20 +247,205 @@
         <h2>Admin Panel</h2>
         <button id="refresh-users-btn" class="btn btn-outline">Refresh</button>
       </div>
-      <div id="admin-message" class="alert hidden"></div>
-      <div class="table-container">
-        <table class="data-table" id="users-table">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Major</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="users-tbody"></tbody>
-        </table>
+      <div class="tabs">
+        <button class="tab-btn active" data-admin-tab="admin-users-panel">Users</button>
+        <button class="tab-btn" data-admin-tab="admin-reports-panel">Reports</button>
+      </div>
+
+      <!-- Users sub-panel -->
+      <div id="admin-users-panel">
+        <div id="admin-message" class="alert hidden"></div>
+        <div class="table-container">
+          <table class="data-table" id="users-table">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Major</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Reports sub-panel -->
+      <div id="admin-reports-panel" class="hidden">
+        <div id="admin-reports-message" class="alert hidden"></div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Reporter</th>
+                <th>Reported</th>
+                <th>Reason</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reports-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Settings Page ── -->
+    <section id="section-settings" class="page-section hidden">
+      <div class="page-header">
+        <h2>Settings</h2>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-settings-tab="settings-profile-panel">Manage Profile</button>
+        <button class="tab-btn" data-settings-tab="settings-security-panel">Account Security</button>
+      </div>
+
+      <!-- Profile tab -->
+      <div id="settings-profile-panel">
+        <div class="settings-card">
+          <h3>Manage User Profile</h3>
+          <div id="settings-profile-msg" class="alert hidden"></div>
+          <div class="form-group">
+            <label for="s-major">Major</label>
+            <input id="s-major" type="text" placeholder="e.g. Computer Science" />
+          </div>
+          <div class="form-group">
+            <label for="s-strengths">Strengths <small>(comma-separated)</small></label>
+            <input id="s-strengths" type="text" placeholder="e.g. Java, Algorithms, Math" />
+          </div>
+          <div class="form-group">
+            <label for="s-weaknesses">Weaknesses <small>(comma-separated)</small></label>
+            <input id="s-weaknesses" type="text" placeholder="e.g. Databases, Networks" />
+          </div>
+          <button id="save-settings-profile-btn" class="btn btn-primary">Save Profile</button>
+        </div>
+      </div>
+
+      <!-- Security tab -->
+      <div id="settings-security-panel" class="hidden">
+        <div class="settings-grid">
+
+          <!-- Change Password -->
+          <div class="settings-card">
+            <h3>Change Password</h3>
+            <div id="settings-pw-msg" class="alert hidden"></div>
+            <div class="form-group">
+              <label for="s-old-pw">Current Password</label>
+              <input id="s-old-pw" type="password" placeholder="Enter current password" />
+            </div>
+            <div class="form-group">
+              <label for="s-new-pw">New Password</label>
+              <input id="s-new-pw" type="password" placeholder="Enter new password (min 4 chars)" />
+            </div>
+            <div class="form-group">
+              <label for="s-confirm-pw">Confirm New Password</label>
+              <input id="s-confirm-pw" type="password" placeholder="Repeat new password" />
+            </div>
+            <button id="change-pw-btn" class="btn btn-primary">Change Password</button>
+          </div>
+
+          <!-- Delete Account -->
+          <div class="settings-card danger-zone">
+            <h3>Delete Account</h3>
+            <p class="danger-desc">This action is <strong>permanent</strong>. Your account, messages, and group memberships will be removed.</p>
+            <div id="settings-del-msg" class="alert hidden"></div>
+            <div class="form-group" style="margin-top:16px">
+              <label for="s-del-pw">Confirm Password</label>
+              <input id="s-del-pw" type="password" placeholder="Enter your password to confirm" />
+            </div>
+            <button id="delete-account-btn" class="btn btn-danger">Delete My Account</button>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Help / Service Manual Page ── -->
+    <section id="section-manual" class="page-section hidden">
+      <div class="page-header">
+        <h2>Help &amp; Service Manual</h2>
+      </div>
+      <div class="manual-grid">
+        <div class="manual-card">
+          <h3>🚀 Getting Started</h3>
+          <ol>
+            <li>Register a new account with your username, password, and major.</li>
+            <li>Log in with your credentials.</li>
+            <li>Go to <strong>My Profile</strong> and add your Strengths and Weaknesses.</li>
+            <li>Use <strong>Find Partners</strong> to discover compatible study partners.</li>
+          </ol>
+        </div>
+        <div class="manual-card">
+          <h3>🔍 Finding Study Partners</h3>
+          <p>Two matching strategies are available:</p>
+          <ul>
+            <li><strong>Complementary Skills</strong> — finds partners whose strengths cover your weaknesses and vice versa. Best for balanced collaboration.</li>
+            <li><strong>Same Major</strong> — prioritises students in the same field with shared knowledge areas.</li>
+          </ul>
+          <p style="margin-top:10px">Higher match scores mean better compatibility. Click <em>Message</em> on any result to start a conversation.</p>
+        </div>
+        <div class="manual-card">
+          <h3>💬 Messaging</h3>
+          <ul>
+            <li>Go to <strong>Messages</strong> in the sidebar.</li>
+            <li>Click any contact to open the conversation.</li>
+            <li>A red badge shows how many unread messages you have from each contact.</li>
+            <li>Messages refresh automatically every 3 seconds when a conversation is open.</li>
+            <li>To contact an admin directly, find <em>admin</em> in the contacts list and send a message.</li>
+          </ul>
+        </div>
+        <div class="manual-card">
+          <h3>👥 Study Groups</h3>
+          <ul>
+            <li>Go to <strong>Study Groups</strong> to browse all groups.</li>
+            <li>Click <em>Join</em> to become a member of any group.</li>
+            <li>Click <em>+ Create Group</em> to start your own group with a name and topic.</li>
+            <li>Switch to the <em>My Groups</em> tab to see groups you have joined or created.</li>
+          </ul>
+        </div>
+        <div class="manual-card">
+          <h3>🚩 Reporting a User</h3>
+          <ul>
+            <li>On the <strong>Find Partners</strong> page, click <em>Report</em> on a partner card.</li>
+            <li>Describe the issue in the reason field and submit.</li>
+            <li>Reports are reviewed by administrators in the Admin Panel.</li>
+            <li>Your report is kept confidential — only admins can see who submitted it.</li>
+          </ul>
+        </div>
+        <div class="manual-card">
+          <h3>⚙️ Account &amp; Profile</h3>
+          <ul>
+            <li>Edit your major, strengths, and weaknesses any time from <strong>My Profile</strong>.</li>
+            <li>If your account is <strong>SUSPENDED</strong> you cannot send messages or appear in searches, but you can still update your profile.</li>
+            <li>Contact an admin via the Messages feature to appeal a suspension.</li>
+          </ul>
+        </div>
+        <div class="manual-card">
+          <h3>❓ Common Issues</h3>
+          <dl class="faq-list">
+            <dt>I can't send messages</dt>
+            <dd>Your account may be suspended. Check your profile status badge. Contact admin via Messages.</dd>
+            <dt>I don't appear in partner searches</dt>
+            <dd>Suspended accounts are hidden from searches. Also ensure you have set a Major in your profile.</dd>
+            <dt>I'm not receiving notifications</dt>
+            <dd>Notifications are polled every 5 seconds. Keep the app open and check your browser allows the page to stay active.</dd>
+            <dt>I forgot my password</dt>
+            <dd>Contact an administrator via the Messages feature to reset your password manually.</dd>
+          </dl>
+        </div>
+        <div class="manual-card">
+          <h3>📞 Contact Admin</h3>
+          <p>For technical issues or account help:</p>
+          <ol>
+            <li>Go to <strong>Messages</strong> in the sidebar.</li>
+            <li>Find <strong>admin</strong> in the contacts list.</li>
+            <li>Send a message describing your issue.</li>
+          </ol>
+          <p style="margin-top:10px">Admins will reply directly in the chat.</p>
+        </div>
       </div>
     </section>
 
@@ -281,6 +473,29 @@
     <div class="btn-row">
       <button id="confirm-create-group" class="btn btn-primary">Create</button>
       <button class="btn btn-outline modal-close" data-modal="modal-create-group">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Report User Modal -->
+<div id="modal-report" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Report User</h3>
+      <button class="modal-close" data-modal="modal-report">✕</button>
+    </div>
+    <div id="report-error" class="alert alert-error hidden"></div>
+    <div class="form-group">
+      <label>Reporting</label>
+      <input id="report-target" type="text" readonly style="background:var(--bg);color:var(--text-muted)" />
+    </div>
+    <div class="form-group">
+      <label for="report-reason">Reason <small>(describe the issue)</small></label>
+      <textarea id="report-reason" rows="4" placeholder="Describe why you are reporting this user..."></textarea>
+    </div>
+    <div class="btn-row">
+      <button id="confirm-report" class="btn btn-danger">Submit Report</button>
+      <button class="btn btn-outline modal-close" data-modal="modal-report">Cancel</button>
     </div>
   </div>
 </div>

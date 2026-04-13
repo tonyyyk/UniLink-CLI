@@ -1,6 +1,7 @@
 import command.*;
 import manager.GroupManager;
 import manager.MessageManager;
+import manager.ReportManager;
 import manager.UserManager;
 import model.Student;
 import server.ApiServer;
@@ -37,6 +38,7 @@ public class Main {
                 UserManager.getInstance().initialise();
                 MessageManager.getInstance().initialise();
                 GroupManager.getInstance().initialise();
+                ReportManager.getInstance().initialise();
 
                 new ApiServer(8080).start();
                 System.out.println("  Press Ctrl+C to stop.");

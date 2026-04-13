@@ -9,7 +9,9 @@ import model.Student;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Handles messaging endpoints:
@@ -108,13 +110,22 @@ public class MessageHandler extends BaseHandler implements HttpHandler {
     }
 
     private void handleContacts(HttpExchange ex, Student student) throws IOException {
+        // Build unread-count map: sender → count for current user's unread messages
+        List<Message> unread = MessageManager.getInstance().getUnreadForUser(student.getUsername());
+        Map<String, Integer> unreadMap = new HashMap<>();
+        for (Message m : unread) {
+            unreadMap.merge(m.getSender(), 1, Integer::sum);
+        }
+
         List<Student> active = UserManager.getInstance().getAllActiveStudents();
         List<String> contactJsons = new ArrayList<>();
         for (Student s : active) {
             if (!s.getUsername().equalsIgnoreCase(student.getUsername())) {
+                int count = unreadMap.getOrDefault(s.getUsername(), 0);
                 contactJsons.add("{" +
                     "\"username\":\"" + JsonUtil.escape(s.getUsername()) + "\"," +
-                    "\"major\":\"" + JsonUtil.escape(s.getMajor()) + "\"" +
+                    "\"major\":\"" + JsonUtil.escape(s.getMajor()) + "\"," +
+                    "\"unreadCount\":" + count +
                 "}");
             }
         }
