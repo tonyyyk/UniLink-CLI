@@ -1,0 +1,7 @@
+username,password,major,strengths,weaknesses,role,status
+admin,admin123,-,-,-,ADMIN,NORMAL
+alice,alice123,Computer Science,Java;Algorithms,Networking;Databases,USER,NORMAL
+bob,bob123,Mathematics,Calculus;Statistics,Programming;Physics,USER,NORMAL
+carol,carol123,Physics,Mathematics;Lab Work,Programming;Statistics,USER,NORMAL
+dave,dave123,Computer Science,Networking;Databases,Algorithms;UI Design,USER,NORMAL
+emma,emma123,Data Science,Python;Statistics;Machine Learning,Java;Networking,USER,NORMAL

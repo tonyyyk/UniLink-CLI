@@ -1,0 +1,7 @@
+sender,receiver,timestamp,content,read
+helloworld,tony,2026-04-13T22:51:43,hello tony,true
+tony,helloworld,2026-04-13T22:52:00,hello helloworld,false
+admin,alice,2026-04-13T22:59:10,hello,false
+alice,dave,2026-04-13T22:59:45,hi dave how ru,true
+dave,alice,2026-04-13T23:00:46,im good thank you,true
+dave,alice,2026-04-13T23:07:16,im fine thank you and you,false
