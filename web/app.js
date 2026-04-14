@@ -335,7 +335,7 @@ async function loadPartners() {
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
           <div class="avatar" style="width:40px;height:40px;font-size:16px">${esc(p.username.charAt(0).toUpperCase())}</div>
           <div>
-            <div class="partner-info"><h4>${esc(p.username)}</h4></div>
+            <div class="partner-info"><h4 class="username-link" onclick="viewProfile('${esc(p.username)}')">${esc(p.username)}</h4></div>
             <div class="partner-meta">
               <span class="tag tag-major">${esc(p.major)}</span>
             </div>
@@ -374,6 +374,78 @@ function goToMessageWith(partnerName) {
   loadContacts().then(() => openConversation(partnerName));
 }
 
+// ═══════════════════════════════════════════════════════ VIEW USER PROFILE ══
+
+async function viewProfile(targetUsername) {
+  const modal   = document.getElementById('modal-view-profile');
+  const loading = document.getElementById('vp-loading');
+  const content = document.getElementById('vp-content');
+
+  document.getElementById('vp-modal-title').textContent = targetUsername + "'s Profile";
+  loading.classList.remove('hidden');
+  content.classList.add('hidden');
+  modal.classList.remove('hidden');
+
+  const r = await get('/api/profile?user=' + encodeURIComponent(targetUsername));
+  loading.classList.add('hidden');
+
+  if (!r.ok) {
+    loading.textContent = r.data.error || 'Could not load profile.';
+    loading.classList.remove('hidden');
+    return;
+  }
+
+  const p = r.data;
+
+  document.getElementById('vp-avatar').textContent   = p.username.charAt(0).toUpperCase();
+  document.getElementById('vp-username').textContent  = p.username;
+  document.getElementById('vp-major').textContent     = p.major || '—';
+  document.getElementById('vp-role').textContent      = p.role  || 'USER';
+  document.getElementById('vp-status').textContent    = p.status || 'NORMAL';
+  document.getElementById('vp-status').className      = 'status-badge' + (p.status === 'SUSPENDED' ? ' suspended' : '');
+
+  // DOB
+  const dobRow = document.getElementById('vp-dob-row');
+  if (p.dateOfBirth) { document.getElementById('vp-dob').textContent = p.dateOfBirth; dobRow.classList.remove('hidden'); }
+  else dobRow.classList.add('hidden');
+
+  // Gender
+  const genderRow = document.getElementById('vp-gender-row');
+  if (p.gender) { document.getElementById('vp-gender').textContent = p.gender; genderRow.classList.remove('hidden'); }
+  else genderRow.classList.add('hidden');
+
+  // Introduction
+  const introRow = document.getElementById('vp-intro-row');
+  if (p.introduction) { document.getElementById('vp-intro').textContent = p.introduction; introRow.classList.remove('hidden'); }
+  else introRow.classList.add('hidden');
+
+  // Skills
+  const renderTags = (id, arr) => {
+    const el = document.getElementById(id);
+    el.innerHTML = (arr && arr.length)
+      ? arr.map(v => `<span class="tag">${esc(v)}</span>`).join('')
+      : '<span class="tag-empty">None listed</span>';
+  };
+  renderTags('vp-strengths', p.strengths);
+  renderTags('vp-weaknesses', p.weaknesses);
+  renderTags('vp-hobbies', p.hobbies);
+
+  // Action buttons — hide if viewing own profile
+  const isOwn = p.username === username;
+  document.getElementById('vp-message-btn').style.display = isOwn ? 'none' : '';
+  document.getElementById('vp-report-btn').style.display  = isOwn ? 'none' : '';
+  document.getElementById('vp-message-btn').onclick = () => {
+    document.getElementById('modal-view-profile').classList.add('hidden');
+    goToMessageWith(p.username);
+  };
+  document.getElementById('vp-report-btn').onclick = () => {
+    document.getElementById('modal-view-profile').classList.add('hidden');
+    reportUser(p.username);
+  };
+
+  content.classList.remove('hidden');
+}
+
 // ═════════════════════════════════════════════════════════════════ MESSAGES ══
 
 async function loadContacts() {
@@ -398,7 +470,7 @@ async function loadContacts() {
     li.innerHTML = `
       <div class="avatar" style="width:36px;height:36px;font-size:14px">${esc(c.username.charAt(0).toUpperCase())}</div>
       <div style="flex:1;min-width:0">
-        <div class="contact-name">${esc(c.username)}</div>
+        <div class="contact-name username-link" onclick="event.stopPropagation();viewProfile('${esc(c.username)}')">${esc(c.username)}</div>
         <div class="contact-major">${esc(c.major)}</div>
       </div>
       ${unreadBadge}
@@ -422,7 +494,10 @@ async function openConversation(partner) {
 
   document.getElementById('no-conversation').classList.add('hidden');
   document.getElementById('conv-view').classList.remove('hidden');
-  document.getElementById('conv-partner-name').textContent = partner;
+  const nameEl = document.getElementById('conv-partner-name');
+  nameEl.textContent = partner;
+  nameEl.className = 'username-link';
+  nameEl.onclick = () => viewProfile(partner);
   document.getElementById('report-conv-partner-btn').onclick = () => reportUser(partner);
 
   clearInterval(convRefreshInterval);
@@ -517,7 +592,7 @@ function renderGroups(containerId, groups) {
     <div class="group-card">
       <h4>${esc(g.name)}</h4>
       <div class="group-topic">${esc(g.topic)}</div>
-      <div class="group-meta">Created by <strong>${esc(g.creator)}</strong> · ID #${g.id}</div>
+      <div class="group-meta">Created by <strong class="username-link" onclick="viewProfile('${esc(g.creator)}')">${esc(g.creator)}</strong> · ID #${g.id}</div>
       <div class="group-footer">
         <span class="group-members">👥 ${g.members.length} member${g.members.length !== 1 ? 's' : ''}</span>
         ${g.isMember
