@@ -526,6 +526,56 @@
   </div>
 </div>
 
+<!-- View User Profile Modal -->
+<div id="modal-view-profile" class="modal-overlay hidden">
+  <div class="modal view-profile-modal">
+    <div class="modal-header">
+      <h3 id="vp-modal-title">User Profile</h3>
+      <button class="modal-close" data-modal="modal-view-profile">✕</button>
+    </div>
+    <div id="vp-loading" style="text-align:center;padding:24px;color:var(--text-muted)">Loading...</div>
+    <div id="vp-content" class="hidden">
+      <div class="vp-header">
+        <div class="profile-avatar" id="vp-avatar">?</div>
+        <div class="vp-meta">
+          <h3 id="vp-username">—</h3>
+          <div class="profile-meta" style="margin-top:6px">
+            <span class="tag tag-major" id="vp-major">—</span>
+            <span class="tag" id="vp-role">USER</span>
+            <span class="status-badge" id="vp-status">NORMAL</span>
+          </div>
+          <div class="profile-details-row" style="margin-top:8px">
+            <span id="vp-dob-row" class="profile-detail hidden"><span class="detail-label">Birthday:</span> <span id="vp-dob">—</span></span>
+            <span id="vp-gender-row" class="profile-detail hidden"><span class="detail-label">Gender:</span> <span id="vp-gender">—</span></span>
+          </div>
+        </div>
+      </div>
+      <div id="vp-intro-row" class="profile-intro hidden" style="margin:12px 0">
+        <span class="detail-label">About:</span>
+        <p id="vp-intro">—</p>
+      </div>
+      <div class="skills-grid" style="margin-top:12px">
+        <div class="skills-card">
+          <h4>Strengths 💪</h4>
+          <div id="vp-strengths" class="tag-list"><span class="tag-empty">None listed</span></div>
+        </div>
+        <div class="skills-card">
+          <h4>Weaknesses 📚</h4>
+          <div id="vp-weaknesses" class="tag-list"><span class="tag-empty">None listed</span></div>
+        </div>
+        <div class="skills-card">
+          <h4>Hobbies 🎯</h4>
+          <div id="vp-hobbies" class="tag-list"><span class="tag-empty">None listed</span></div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:16px">
+        <button id="vp-message-btn" class="btn btn-primary btn-sm">Message</button>
+        <button id="vp-report-btn" class="btn btn-outline btn-sm">🚩 Report</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Report User Modal -->
 <div id="modal-report" class="modal-overlay hidden">
   <div class="modal">

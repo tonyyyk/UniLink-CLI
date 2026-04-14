@@ -879,3 +879,37 @@ select#edit-gender {
 select#edit-gender:focus {
   border-color: var(--primary);
 }
+
+/* ═══════════════════════════════════════════════════ VIEW PROFILE MODAL ══ */
+
+.username-link {
+  cursor: pointer;
+  color: var(--primary);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+.username-link:hover {
+  color: var(--primary-dark);
+  text-decoration-style: solid;
+}
+
+.view-profile-modal {
+  width: 560px;
+  max-width: 95vw;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.vp-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.vp-meta {
+  flex: 1;
+  min-width: 0;
+}

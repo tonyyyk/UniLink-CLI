@@ -19,11 +19,11 @@ A Java application for university students to find study partners, exchange mess
 |---|---|
 | Authentication | Register and login; credentials stored in CSV |
 | Profile Management | Set Major, Strengths, Weaknesses, Date of Birth, Gender, Hobbies, and Introduction |
+| View Profile | Click any username (partner results, messages, group cards) to open a read-only profile modal with Message and Report shortcuts |
 | Partner Matching | Two algorithms rank partners by compatibility score |
-| Messaging | Real-time 1-to-1 chat; unread badge per contact; clickable notification toasts |
-| Study Groups | Create, browse, and join groups; group chat available after joining |
-| Group Chat | Live chat inside any group you are a member of; polls every 3 seconds |
-| Report System | Report a user from partner cards or inside a conversation; admins review and dismiss |
+| Messaging | Real-time chat; admin ↔ user messaging fully supported; unread badge per contact; notification toasts are clickable to open the conversation |
+| Study Groups | Create, browse, and join study groups; group chat available after joining |
+| Report System | Report a user from partner cards or from inside a conversation; admins review and dismiss |
 | Admin Panel | Suspend/reinstate accounts; Users tab + Reports tab |
 | Settings | Change password or delete account; edit profile fields |
 | Help / Service Manual | In-app FAQ and how-to guide |
@@ -104,13 +104,16 @@ Launches the original interactive command-line interface.
 | Page | How to access | What it does |
 |---|---|---|
 | Login / Register | Landing screen | Create an account or sign in |
-| My Profile | Sidebar → My Profile | View and edit all profile fields including hobbies and introduction |
-| Find Partners | Sidebar → Find Partners | Search partners by strategy; Message or Report any result |
-| Messages | Sidebar → Messages | Real-time 1-to-1 chat with unread badge and 🚩 Report button |
-| Study Groups | Sidebar → Study Groups | Browse all groups; join a group; open group chat via 💬 Chat button |
-| Admin Panel | Sidebar → Admin Panel | (Admin only) Suspend/reinstate users; review reports |
-| Settings | Sidebar → Settings | Change password, delete account, edit profile |
-| Help / Manual | Sidebar → Help / Manual | FAQ and how-to guide |
+| My Profile | Sidebar → My Profile | View and edit all profile fields (major, DOB, gender, hobbies, introduction, strengths, weaknesses) |
+| View Profile | Click any username | Opens a read-only profile modal; includes Message and 🚩 Report shortcuts |
+| Find Partners | Sidebar → Find Partners | Search partners; click a name to view their profile, Message or Report any result |
+| Messages | Sidebar → Messages | Real-time chat; click partner name to view profile; unread badge per contact; 🚩 Report button in conversation header |
+| Study Groups | Sidebar → Study Groups | Browse all groups, see groups you joined, create a new group |
+| Admin Panel | Sidebar → Admin Panel | (Admin only) Users tab: suspend/reinstate; Reports tab: review and dismiss |
+| Settings | Sidebar → Settings | **Manage Profile** tab (major/strengths/weaknesses) + **Account Security** tab (change password, delete account) |
+| Help / Manual | Sidebar → Help / Manual | FAQ, how-to guide, and instructions for contacting admin |
+
+Live notifications (e.g. "You have a new message") appear as **clickable** toast popups — clicking opens the conversation directly. The browser polls every 5 seconds using the Observer pattern.
 
 ---
 
@@ -264,7 +267,8 @@ Authorization: Bearer <token>
 | POST | `/api/auth/register` | Register `{username, password, major}` |
 | POST | `/api/auth/logout` | Invalidate session |
 | GET | `/api/profile` | Get current user's full profile |
-| PUT | `/api/profile` | Update `{major, strengths, weaknesses, dateOfBirth, gender, hobbies, introduction}` |
+| GET | `/api/profile?user=<username>` | Get any user's public profile (for View Profile feature) |
+| PUT | `/api/profile` | Update `{major, dateOfBirth, gender, strengths, weaknesses, hobbies, introduction}` |
 | GET | `/api/match?strategy=` | `complementary` or `samemajor` — returns ranked list |
 | GET | `/api/messages/contacts` | All users with unread count |
 | GET | `/api/messages/unread-count` | `{count}` |
