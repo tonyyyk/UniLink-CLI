@@ -42,4 +42,28 @@ public class SessionManager {
     public boolean isLoggedIn(String token) {
         return token != null && sessions.containsKey(token);
     }
+
+    /**
+     * Immediately suspend any active session for the given username.
+     * Called by AdminHandler so the ban takes effect without requiring re-login.
+     */
+    public void suspendActiveSession(String username) {
+        for (Student s : sessions.values()) {
+            if (s.getUsername().equalsIgnoreCase(username)) {
+                s.suspend();
+            }
+        }
+    }
+
+    /**
+     * Immediately reinstate any active session for the given username.
+     * Called by AdminHandler so the unban takes effect without requiring re-login.
+     */
+    public void reinstateActiveSession(String username) {
+        for (Student s : sessions.values()) {
+            if (s.getUsername().equalsIgnoreCase(username)) {
+                s.reinstate();
+            }
+        }
+    }
 }

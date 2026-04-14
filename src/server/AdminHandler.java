@@ -78,6 +78,7 @@ public class AdminHandler extends BaseHandler implements HttpHandler {
             return;
         }
         UserManager.getInstance().suspendUser(username);
+        SessionManager.getInstance().suspendActiveSession(username);   // instant effect
         sendJson(ex, 200, "{\"success\":true}");
     }
 
@@ -94,6 +95,7 @@ public class AdminHandler extends BaseHandler implements HttpHandler {
             return;
         }
         UserManager.getInstance().reinstateUser(username);
+        SessionManager.getInstance().reinstateActiveSession(username); // instant effect
         sendJson(ex, 200, "{\"success\":true}");
     }
 }
