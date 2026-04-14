@@ -9,10 +9,11 @@ A Java application for university students to find study partners, exchange mess
 | Feature | Description |
 |---|---|
 | Authentication | Register and login; credentials stored in CSV |
-| Profile Management | Set your Major, Strengths, and Weaknesses |
+| Profile Management | Set Major, Strengths, Weaknesses, Date of Birth, Gender, Hobbies, and Introduction |
+| View Profile | Click any username (partner results, messages, group cards) to open a read-only profile modal with Message and Report shortcuts |
 | Partner Matching | Two algorithms rank partners by compatibility score |
 | Messaging | Real-time chat; admin ↔ user messaging fully supported; unread badge per contact; notification toasts are clickable to open the conversation |
-| Study Groups | Create, browse, and join study groups |
+| Study Groups | Create, browse, and join study groups; group chat available after joining |
 | Report System | Report a user from partner cards or from inside a conversation; admins review and dismiss |
 | Admin Panel | Suspend/reinstate accounts; Users tab + Reports tab |
 | Settings | Change password or delete account (Account Security); edit profile (Manage Profile) |
@@ -97,9 +98,10 @@ Launches the original interactive command-line interface. Identical features to 
 | Page | How to access | What it does |
 |---|---|---|
 | Login / Register | Landing screen | Create an account or sign in |
-| My Profile | Sidebar → My Profile | View and edit your major, strengths, weaknesses |
-| Find Partners | Sidebar → Find Partners | Search partners; Message or Report any result |
-| Messages | Sidebar → Messages | Real-time chat; unread badge per contact; 🚩 Report button in conversation header |
+| My Profile | Sidebar → My Profile | View and edit all profile fields (major, DOB, gender, hobbies, introduction, strengths, weaknesses) |
+| View Profile | Click any username | Opens a read-only profile modal; includes Message and 🚩 Report shortcuts |
+| Find Partners | Sidebar → Find Partners | Search partners; click a name to view their profile, Message or Report any result |
+| Messages | Sidebar → Messages | Real-time chat; click partner name to view profile; unread badge per contact; 🚩 Report button in conversation header |
 | Study Groups | Sidebar → Study Groups | Browse all groups, see groups you joined, create a new group |
 | Admin Panel | Sidebar → Admin Panel | (Admin only) Users tab: suspend/reinstate; Reports tab: review and dismiss |
 | Settings | Sidebar → Settings | **Manage Profile** tab (major/strengths/weaknesses) + **Account Security** tab (change password, delete account) |
@@ -235,8 +237,9 @@ Authorization: Bearer <token>
 | POST | `/api/auth/login` | Login; returns `{token, username, role, status}` |
 | POST | `/api/auth/register` | Register `{username, password, major}` |
 | POST | `/api/auth/logout` | Invalidate session |
-| GET | `/api/profile` | Get current user's profile |
-| PUT | `/api/profile` | Update `{major, strengths, weaknesses}` |
+| GET | `/api/profile` | Get current user's full profile |
+| GET | `/api/profile?user=<username>` | Get any user's public profile (for View Profile feature) |
+| PUT | `/api/profile` | Update `{major, dateOfBirth, gender, strengths, weaknesses, hobbies, introduction}` |
 | GET | `/api/match?strategy=` | `complementary` or `samemajor` — returns ranked list |
 | GET | `/api/messages/contacts` | List of all users to message |
 | GET | `/api/messages/unread-count` | `{count}` |

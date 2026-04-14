@@ -10,8 +10,9 @@ import java.util.List;
 
 /**
  * Handles profile endpoints:
- *   GET /api/profile   — return the current user's profile
- *   PUT /api/profile   — update major, strengths, weaknesses
+ *   GET /api/profile            — return the current user's own profile
+ *   GET /api/profile?user=<u>   — return the public profile of any user
+ *   PUT /api/profile            — update major, strengths, weaknesses, etc.
  */
 public class ProfileHandler extends BaseHandler implements HttpHandler {
 
@@ -25,7 +26,34 @@ public class ProfileHandler extends BaseHandler implements HttpHandler {
             if (student == null) return;
 
             if (method.equals("GET")) {
-                sendJson(ex, 200, JsonUtil.toJson(student));
+                // Check for ?user=<username> query param
+                String query = ex.getRequestURI().getQuery();
+                String targetUsername = null;
+                if (query != null) {
+                    for (String part : query.split("&")) {
+                        if (part.startsWith("user=")) {
+                            targetUsername = java.net.URLDecoder.decode(
+                                part.substring(5), "UTF-8");
+                        }
+                    }
+                }
+                if (targetUsername != null && !targetUsername.isEmpty()) {
+                    // Return another user's public profile
+                    Student target = null;
+                    for (Student s : UserManager.getInstance().getAllUsers()) {
+                        if (s.getUsername().equalsIgnoreCase(targetUsername)) {
+                            target = s;
+                            break;
+                        }
+                    }
+                    if (target == null) {
+                        sendError(ex, 404, "User not found");
+                        return;
+                    }
+                    sendJson(ex, 200, JsonUtil.toJson(target));
+                } else {
+                    sendJson(ex, 200, JsonUtil.toJson(student));
+                }
             } else if (method.equals("PUT")) {
                 handleUpdate(ex, student);
             } else {
