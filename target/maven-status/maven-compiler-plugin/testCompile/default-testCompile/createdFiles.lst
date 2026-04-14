@@ -1,0 +1,7 @@
+manager/UserManagerTest.class
+strategy/MatchingStrategyTest.class
+model/StudentTest.class
+manager/GroupManagerTest.class
+model/StudyGroupTest.class
+model/MessageTest.class
+state/StatePatternTest.class
