@@ -23,6 +23,7 @@ A Java application for university students to find study partners, exchange mess
 | Partner Matching | Two algorithms rank partners by compatibility score |
 | Messaging | Real-time chat; admin ↔ user messaging fully supported; unread badge per contact; notification toasts are clickable to open the conversation |
 | Study Groups | Create, browse, and join study groups; group chat available after joining |
+| Suspension Appeal | Suspended users see a red banner with a "Message Admin to appeal →" link; suspended accounts can message admin but no one else |
 | Report System | Report a user from partner cards or from inside a conversation; admins review and dismiss |
 | Admin Panel | Suspend/reinstate accounts; Users tab + Reports tab |
 | Settings | Change password or delete account; edit profile fields |

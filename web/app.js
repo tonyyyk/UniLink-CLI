@@ -123,6 +123,12 @@ document.getElementById('goto-login').addEventListener('click', e => {
   showPage('page-login');
 });
 
+document.getElementById('appeal-link').addEventListener('click', e => {
+  e.preventDefault();
+  showSection('messages');
+  loadContacts().then(() => openConversation('admin'));
+});
+
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await post('/api/auth/logout');
   clearSession();
@@ -172,6 +178,14 @@ async function loadProfile() {
   const statusBadge = document.getElementById('nav-status');
   statusBadge.textContent = p.status;
   statusBadge.className   = 'status-badge ' + p.status;
+
+  // Show / hide suspension banner
+  const banner = document.getElementById('suspension-banner');
+  if (p.status === 'SUSPENDED') {
+    banner.classList.remove('hidden');
+  } else {
+    banner.classList.add('hidden');
+  }
 
   // Update profile view
   document.getElementById('profile-avatar-big').textContent = p.username.charAt(0).toUpperCase();

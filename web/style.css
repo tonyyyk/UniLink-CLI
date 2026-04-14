@@ -880,36 +880,26 @@ select#edit-gender:focus {
   border-color: var(--primary);
 }
 
-/* ═══════════════════════════════════════════════════ VIEW PROFILE MODAL ══ */
+/* ══════════════════════════════════════════════════ SUSPENSION BANNER ══ */
 
-.username-link {
-  cursor: pointer;
-  color: var(--primary);
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-underline-offset: 2px;
-}
-
-.username-link:hover {
-  color: var(--primary-dark);
-  text-decoration-style: solid;
-}
-
-.view-profile-modal {
-  width: 560px;
-  max-width: 95vw;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.vp-header {
+.suspension-banner {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-bottom: 1px solid #fca5a5;
+  padding: 10px 20px;
+  font-size: 13px;
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 4px;
+  align-items: center;
+  gap: 10px;
 }
 
-.vp-meta {
-  flex: 1;
-  min-width: 0;
+.suspension-banner a {
+  color: var(--danger);
+  font-weight: 600;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.suspension-banner a:hover {
+  opacity: 0.8;
 }
