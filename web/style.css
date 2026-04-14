@@ -350,6 +350,7 @@ input:focus, textarea:focus {
 }
 
 .strategy-option {
+  position: relative; 
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -363,7 +364,11 @@ input:focus, textarea:focus {
   min-width: 200px;
 }
 
-.strategy-option input[type="radio"] { margin-bottom: 4px; }
+.strategy-option input[type="radio"] { 
+  position: absolute; 
+  opacity: 0;
+  cursor: pointer; 
+}
 .strategy-option span { font-weight: 600; font-size: 14px; }
 .strategy-option small { color: var(--text-muted); font-size: 12px; }
 .strategy-option:has(input:checked) { border-color: var(--primary); background: var(--primary-light); }
