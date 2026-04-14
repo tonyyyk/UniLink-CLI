@@ -934,6 +934,8 @@ function startNotifyPolling() {
   clearInterval(notifyInterval);
   notifyInterval = setInterval(async () => {
     const r = await get('/api/notifications/poll');
+    // Refresh status badge every poll so ban/unban is reflected instantly
+    if (r.ok) loadProfile();
     if (!r.ok || !r.data.notifications) return;
     r.data.notifications.forEach(n => {
       // Parse sender from "You have a new message from X!"
