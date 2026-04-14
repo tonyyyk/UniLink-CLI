@@ -4,21 +4,32 @@ A Java application for university students to find study partners, exchange mess
 
 ---
 
+## Branches
+
+| Branch | Purpose |
+|---|---|
+| `main` | Full application source code |
+| `testing` | JUnit 5 test suite (69 tests covering all design patterns) |
+
+---
+
 ## Features
 
 | Feature | Description |
 |---|---|
 | Authentication | Register and login; credentials stored in CSV |
-| Profile Management | Set your Major, Strengths, and Weaknesses |
+| Profile Management | Set Major, Strengths, Weaknesses, Date of Birth, Gender, Hobbies, and Introduction |
+| View Profile | Click any username (partner results, messages, group cards) to open a read-only profile modal with Message and Report shortcuts |
 | Partner Matching | Two algorithms rank partners by compatibility score |
 | Messaging | Real-time chat; admin ↔ user messaging fully supported; unread badge per contact; notification toasts are clickable to open the conversation |
-| Study Groups | Create, browse, and join study groups |
+| Study Groups | Create, browse, and join study groups; group chat available after joining |
+| Suspension Appeal | Suspended users see a red banner with a "Message Admin to appeal →" link; suspended accounts can message admin but no one else |
 | Report System | Report a user from partner cards or from inside a conversation; admins review and dismiss |
 | Admin Panel | Suspend/reinstate accounts; Users tab + Reports tab |
-| Settings | Change password or delete account (Account Security); edit profile (Manage Profile) |
-| Help / Service Manual | In-app FAQ and how-to guide accessible from the sidebar |
-| Web GUI | Full browser-based SPA — same features, no CLI required; each browser tab holds an independent session (multi-account testing supported) |
-| Demo Accounts | Five seed users (alice, bob, carol, dave, emma) created on first run for demonstration |
+| Settings | Change password or delete account; edit profile fields |
+| Help / Service Manual | In-app FAQ and how-to guide |
+| Web GUI | Full browser-based SPA; each tab holds an independent session |
+| Demo Accounts | Five seed users created on first run for demonstration |
 
 ---
 
@@ -26,9 +37,8 @@ A Java application for university students to find study partners, exchange mess
 
 - **Java 11 or higher** (uses the JDK built-in HTTP server — no external libraries needed)
 - A modern web browser (Chrome, Firefox, Edge, Safari) for the web GUI
-- No Maven, Gradle, npm, or any other build tools needed
 
-> **Tested on Java 11, 17, 21, and 24.** If you are unsure which version you have, run `java -version` in your terminal.
+> Run `java -version` to check your version.
 
 ---
 
@@ -36,7 +46,7 @@ A Java application for university students to find study partners, exchange mess
 
 ### 1. Compile
 
-From the **project root directory**, run:
+From the **project root directory**:
 
 ```bash
 javac -d out -sourcepath src $(find src -name "*.java" | tr '\n' ' ')
@@ -49,8 +59,6 @@ javac -d out @sources.txt
 del sources.txt
 ```
 
-Compiled `.class` files will be placed in the `out/` directory (created automatically).
-
 ---
 
 ### 2. Run — Web GUI Mode (recommended)
@@ -59,9 +67,9 @@ Compiled `.class` files will be placed in the `out/` directory (created automati
 java -cp out Main --web
 ```
 
-Then open your browser to: **http://localhost:8080**
+Open your browser to: **http://localhost:8080**
 
-The server runs until you press `Ctrl+C`.
+Press `Ctrl+C` to stop the server.
 
 **Default admin account:**
 ```
@@ -71,24 +79,24 @@ Password: admin123
 
 **Demo accounts (seeded on first run):**
 ```
-alice / alice123  — CS, strengths: Java, Algorithms
-bob   / bob123    — Mathematics, strengths: Calculus, Statistics
-carol / carol123  — Physics, strengths: Mathematics, Lab Work
-dave  / dave123   — CS, strengths: Networking, Databases
-emma  / emma123   — Data Science, strengths: Python, Statistics, Machine Learning
+alice / alice123  — CS,           Strengths: Java, Algorithms
+bob   / bob123    — Mathematics,  Strengths: Calculus, Statistics
+carol / carol123  — Physics,      Strengths: Mathematics, Lab Work
+dave  / dave123   — CS,           Strengths: Networking, Databases
+emma  / emma123   — Data Science, Strengths: Python, Statistics, Machine Learning
 ```
 
-> **Multi-account testing:** Open multiple browser tabs — each tab keeps its own independent session, so you can be logged in as different users simultaneously.
+> **Multi-account testing:** Open multiple browser tabs — each tab keeps its own independent session.
 
 ---
 
-### 3. Run — CLI Mode (original)
+### 3. Run — CLI Mode
 
 ```bash
 java -cp out Main
 ```
 
-Launches the original interactive command-line interface. Identical features to the web GUI.
+Launches the original interactive command-line interface.
 
 ---
 
@@ -97,9 +105,10 @@ Launches the original interactive command-line interface. Identical features to 
 | Page | How to access | What it does |
 |---|---|---|
 | Login / Register | Landing screen | Create an account or sign in |
-| My Profile | Sidebar → My Profile | View and edit your major, strengths, weaknesses |
-| Find Partners | Sidebar → Find Partners | Search partners; Message or Report any result |
-| Messages | Sidebar → Messages | Real-time chat; unread badge per contact; 🚩 Report button in conversation header |
+| My Profile | Sidebar → My Profile | View and edit all profile fields (major, DOB, gender, hobbies, introduction, strengths, weaknesses) |
+| View Profile | Click any username | Opens a read-only profile modal; includes Message and 🚩 Report shortcuts |
+| Find Partners | Sidebar → Find Partners | Search partners; click a name to view their profile, Message or Report any result |
+| Messages | Sidebar → Messages | Real-time chat; click partner name to view profile; unread badge per contact; 🚩 Report button in conversation header |
 | Study Groups | Sidebar → Study Groups | Browse all groups, see groups you joined, create a new group |
 | Admin Panel | Sidebar → Admin Panel | (Admin only) Users tab: suspend/reinstate; Reports tab: review and dismiss |
 | Settings | Sidebar → Settings | **Manage Profile** tab (major/strengths/weaknesses) + **Account Security** tab (change password, delete account) |
@@ -114,7 +123,7 @@ Live notifications (e.g. "You have a new message") appear as **clickable** toast
 ### 1. State Pattern
 **Files:** [src/state/](src/state/)
 
-Manages student account lifecycle. A `Student` delegates permission checks to its current `StudentState`:
+Manages student account lifecycle. `Student` delegates permission checks to its current `StudentState`:
 
 | Capability | NormalState | SuspendedState |
 |---|---|---|
@@ -127,28 +136,58 @@ Manages student account lifecycle. A `Student` delegates permission checks to it
 
 `MessageManager` (Subject) holds registered `Student` Observers. When a message is sent, `notifyObservers()` enqueues a notification on the recipient's `Student` object.
 
-- **CLI:** notifications are drained and printed at the top of each main menu loop
-- **Web:** `GET /api/notifications/poll` drains the same queue every 5 seconds and returns JSON; the browser shows a toast popup
+- **CLI:** drained and printed at the top of each main menu loop
+- **Web:** `GET /api/notifications/poll` drains the queue every 5 seconds; the browser shows a clickable toast popup
 
 ### 3. Strategy Pattern
 **Files:** [src/strategy/](src/strategy/)
 
-The matching algorithm is swapped at runtime by selecting a strategy:
+The matching algorithm is swapped at runtime:
 
 | Strategy | Scoring |
 |---|---|
 | **Complementary** (default) | 20% base + 20% same major + 30% per complementary skill pair |
 | **Same Major** | 20% base + 40% same major + 15% per shared strength + 10% per shared weakness |
 
+Both scores are capped at 100%.
+
 ### 4. Singleton Pattern
 **Files:** [src/manager/](src/manager/)
 
-`UserManager`, `MessageManager`, `GroupManager`, `ReportManager`, and `SessionManager` each expose a `getInstance()` method and use a private constructor, guaranteeing exactly one instance manages each resource.
+`UserManager`, `MessageManager`, `GroupManager`, `GroupMessageManager`, `ReportManager`, and `SessionManager` each expose a `getInstance()` method with a private constructor, guaranteeing exactly one instance manages each resource.
 
 ### 5. Command Pattern
 **Files:** [src/command/](src/command/), [src/ui/MenuBuilder.java](src/ui/MenuBuilder.java)
 
-Every CLI menu action is encapsulated as a `Command` object with `getLabel()` and `execute()`. `MenuBuilder` (the Invoker) renders menus and dispatches calls without knowing what any command does.
+Every CLI menu action is a `Command` object with `getLabel()` and `execute()`. `MenuBuilder` (the Invoker) renders menus and dispatches calls without knowing what any command does.
+
+---
+
+## Testing (branch: `testing`)
+
+Switch to the `testing` branch to access the JUnit 5 test suite:
+
+```bash
+git checkout testing
+```
+
+**Test files:**
+
+| File | Tests | Covers |
+|---|---|---|
+| `test/state/StatePatternTest.java` | 8 | NormalState / SuspendedState permissions |
+| `test/model/StudentTest.java` | 15 | CSV round-trip, state transitions, Observer queue |
+| `test/model/StudyGroupTest.java` | 8 | CSV round-trip, membership add/dedup |
+| `test/model/MessageTest.java` | 7 | CSV round-trip, read flag, timestamp format |
+| `test/strategy/MatchingStrategyTest.java` | 10 | Scoring formulas, 100% cap, strategy swap |
+| `test/manager/UserManagerTest.java` | 11 | Singleton, register/login, suspend/reinstate |
+| `test/manager/GroupManagerTest.java` | 10 | Singleton, create/join group, member filtering |
+
+**To run the tests**, install [Maven](https://maven.apache.org) and run from the project root:
+
+```bash
+mvn test
+```
 
 ---
 
@@ -160,7 +199,8 @@ project root/
 │   ├── Main.java                          # Entry point (--web flag or CLI)
 │   ├── model/
 │   │   ├── Student.java                   # Core user model + Observer
-│   │   ├── Message.java                   # Message value object
+│   │   ├── Message.java                   # 1-to-1 message value object
+│   │   ├── GroupMessage.java              # Group chat message value object
 │   │   ├── StudyGroup.java                # Study group value object
 │   │   └── Report.java                    # Report value object
 │   ├── state/
@@ -175,50 +215,42 @@ project root/
 │   │   ├── ComplementaryMatchingStrategy.java
 │   │   └── SameMajorMatchingStrategy.java
 │   ├── command/                           # One class per CLI menu action
-│   │   ├── Command.java
-│   │   ├── LoginCommand.java
-│   │   ├── RegisterCommand.java
-│   │   ├── ViewProfileCommand.java
-│   │   ├── EditProfileCommand.java
-│   │   ├── FindPartnersCommand.java
-│   │   ├── SendMessageCommand.java
-│   │   ├── ReadMessagesCommand.java
-│   │   ├── CreateGroupCommand.java
-│   │   ├── AdminPanelCommand.java
-│   │   └── LogoutCommand.java
 │   ├── manager/
 │   │   ├── UserManager.java               # Singleton — users.csv
 │   │   ├── MessageManager.java            # Singleton + Subject — messages.csv
 │   │   ├── GroupManager.java              # Singleton — groups.csv
+│   │   ├── GroupMessageManager.java       # Singleton — group_messages.csv
 │   │   └── ReportManager.java             # Singleton — reports.csv
 │   ├── ui/
-│   │   ├── CLIHelper.java                 # Input helpers and display utilities
+│   │   ├── CLIHelper.java
 │   │   └── MenuBuilder.java               # Command pattern Invoker
-│   └── server/                            # Web GUI backend (new)
-│       ├── ApiServer.java                 # Creates HttpServer, registers all routes
-│       ├── SessionManager.java            # Token → Student session map (Singleton)
-│       ├── JsonUtil.java                  # Manual JSON serialisation / parsing
-│       ├── BaseHandler.java               # Shared: auth, CORS, request/response helpers
+│   └── server/
+│       ├── ApiServer.java                 # Registers all HTTP routes
+│       ├── SessionManager.java            # Token → Student session map
+│       ├── JsonUtil.java                  # JSON serialisation / parsing
+│       ├── BaseHandler.java               # Auth, CORS, request helpers
 │       ├── StaticFileHandler.java         # Serves web/ directory
-│       ├── AuthHandler.java               # /api/auth/login, register, logout
-│       ├── ProfileHandler.java            # GET/PUT /api/profile
-│       ├── MatchHandler.java              # GET /api/match?strategy=
-│       ├── MessageHandler.java            # /api/messages/* endpoints
-│       ├── NotifyHandler.java             # GET /api/notifications/poll
-│       ├── GroupHandler.java              # /api/groups/* endpoints
-│       ├── AdminHandler.java              # /api/admin/* endpoints
-│       ├── ReportHandler.java             # /api/reports/* endpoints
-│       └── SettingsHandler.java           # /api/settings/password, /api/settings/delete
-├── web/                                   # Browser SPA (served by StaticFileHandler)
-│   ├── index.html                         # Single HTML shell — all pages as divs
-│   ├── style.css                          # Full UI styles (sidebar, chat, cards)
-│   └── app.js                             # All JS: routing, API calls, polling
+│       ├── AuthHandler.java               # /api/auth/*
+│       ├── ProfileHandler.java            # /api/profile
+│       ├── MatchHandler.java              # /api/match
+│       ├── MessageHandler.java            # /api/messages/*
+│       ├── GroupHandler.java              # /api/groups/*
+│       ├── GroupMessageHandler.java       # /api/groups/chat
+│       ├── NotifyHandler.java             # /api/notifications/poll
+│       ├── AdminHandler.java              # /api/admin/*
+│       ├── ReportHandler.java             # /api/reports/*
+│       └── SettingsHandler.java           # /api/settings/*
+├── web/
+│   ├── index.html                         # Single HTML shell
+│   ├── style.css                          # Full UI styles
+│   └── app.js                             # Routing, API calls, polling
 ├── data/                                  # Auto-created on first run
 │   ├── users.csv
 │   ├── messages.csv
 │   ├── groups.csv
+│   ├── group_messages.csv
 │   └── reports.csv
-└── out/                                   # Compiled .class files (after javac)
+└── out/                                   # Compiled .class files
 ```
 
 ---
@@ -235,26 +267,29 @@ Authorization: Bearer <token>
 | POST | `/api/auth/login` | Login; returns `{token, username, role, status}` |
 | POST | `/api/auth/register` | Register `{username, password, major}` |
 | POST | `/api/auth/logout` | Invalidate session |
-| GET | `/api/profile` | Get current user's profile |
-| PUT | `/api/profile` | Update `{major, strengths, weaknesses}` |
+| GET | `/api/profile` | Get current user's full profile |
+| GET | `/api/profile?user=<username>` | Get any user's public profile (for View Profile feature) |
+| PUT | `/api/profile` | Update `{major, dateOfBirth, gender, strengths, weaknesses, hobbies, introduction}` |
 | GET | `/api/match?strategy=` | `complementary` or `samemajor` — returns ranked list |
-| GET | `/api/messages/contacts` | List of all users to message |
+| GET | `/api/messages/contacts` | All users with unread count |
 | GET | `/api/messages/unread-count` | `{count}` |
 | GET | `/api/messages/conversation?with=` | Full chat history with a user |
 | POST | `/api/messages/send` | Send `{to, content}` |
-| GET | `/api/notifications/poll` | Drain Observer queue, returns `{notifications:[...]}` |
+| GET | `/api/notifications/poll` | Drain Observer queue; returns `{notifications:[...]}` |
 | GET | `/api/groups` | All groups with membership flag |
 | GET | `/api/groups/mine` | Groups the current user belongs to |
 | POST | `/api/groups/create` | Create `{name, topic}` |
 | POST | `/api/groups/join` | Join `{groupId}` |
+| GET | `/api/groups/chat?groupId=` | Get group chat messages (members only) |
+| POST | `/api/groups/chat` | Send `{groupId, content}` (members only) |
 | GET | `/api/admin/users` | All users (admin only) |
 | POST | `/api/admin/suspend` | Suspend `{username}` (admin only) |
 | POST | `/api/admin/reinstate` | Reinstate `{username}` (admin only) |
-| POST | `/api/reports/submit` | Submit `{reported, reason}` — any logged-in user |
+| POST | `/api/reports/submit` | Submit `{reported, reason}` |
 | GET | `/api/reports` | All reports (admin only) |
 | POST | `/api/reports/dismiss` | Dismiss `{id}` (admin only) |
-| POST | `/api/settings/password` | Change own password `{oldPassword, newPassword}`; invalidates session |
-| POST | `/api/settings/delete` | Delete own account `{password}`; invalidates session |
+| POST | `/api/settings/password` | Change password `{oldPassword, newPassword}` |
+| POST | `/api/settings/delete` | Delete account `{password}` |
 
 ---
 
@@ -262,9 +297,9 @@ Authorization: Bearer <token>
 
 **data/users.csv**
 ```
-username,password,major,strengths,weaknesses,role,status
+username,password,major,strengths,weaknesses,role,status[,dateOfBirth,gender,hobbies,introduction]
 admin,admin123,-,-,-,ADMIN,NORMAL
-alice,pass123,CS,Java;Math,Networks,USER,NORMAL
+alice,alice123,CS,Java;Algorithms,Networks,USER,NORMAL,2000-05-15,Female,Reading;Hiking,Hi everyone
 ```
 
 **data/messages.csv**
@@ -279,13 +314,17 @@ groupId,groupName,creator,members,topic
 1,CS Study Group,alice,"alice;bob",Algorithms
 ```
 
+**data/group_messages.csv**
+```
+groupId,sender,timestamp,content
+1,alice,2026-04-14T10:30:00,Hello everyone in the group!
+```
+
 **data/reports.csv**
 ```
 id,reporter,reported,reason,timestamp,status
 1,alice,bob,Inappropriate messages,2026-04-13T18:27:00,PENDING
 ```
-
-Data files are created automatically with seed data on first run.
 
 ---
 
@@ -293,20 +332,15 @@ Data files are created automatically with seed data on first run.
 
 **Port 8080 already in use**
 ```bash
-# macOS / Linux — find and kill the process using port 8080
 lsof -ti:8080 | xargs kill
 ```
 
 **`javac` not found**
-Make sure Java JDK (not just JRE) is installed and `JAVA_HOME` / `PATH` is set correctly.
 ```bash
 java -version    # should print 11 or higher
 javac -version   # should match
 ```
-
-**Which Java version should I install?**
-Any of these work: Java 11 LTS, Java 17 LTS, Java 21 LTS, or Java 24. Download from [Adoptium (Temurin)](https://adoptium.net) — free, open source, works on Windows/macOS/Linux.
+Install JDK from [Adoptium (Temurin)](https://adoptium.net) — free, works on Windows/macOS/Linux.
 
 **`find` command not available (Windows)**
-Use the Windows compile command shown in the Build section above, or use an IDE (IntelliJ IDEA, Eclipse, VS Code with Java Extension Pack) to compile and run.
-# UniLink-GUI
+Use the Windows compile command shown above, or compile via an IDE (IntelliJ IDEA, Eclipse, VS Code with Java Extension Pack).

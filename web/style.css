@@ -879,3 +879,27 @@ select#edit-gender {
 select#edit-gender:focus {
   border-color: var(--primary);
 }
+
+/* ══════════════════════════════════════════════════ SUSPENSION BANNER ══ */
+
+.suspension-banner {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-bottom: 1px solid #fca5a5;
+  padding: 10px 20px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.suspension-banner a {
+  color: var(--danger);
+  font-weight: 600;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.suspension-banner a:hover {
+  opacity: 0.8;
+}

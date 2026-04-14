@@ -81,14 +81,18 @@ public class MessageHandler extends BaseHandler implements HttpHandler {
         if (!ex.getRequestMethod().equals("POST")) {
             sendError(ex, 405, "POST required"); return;
         }
-        if (!student.canSendMessage()) {
-            sendError(ex, 403, "Your account is SUSPENDED. You cannot send messages.");
-            return;
-        }
-
         String body = readBody(ex);
         String to      = JsonUtil.parseString(body, "to");
         String content = JsonUtil.parseString(body, "content");
+
+        // Suspended users may only message the admin to appeal their suspension
+        if (!student.canSendMessage()) {
+            boolean messagingAdmin = to != null && to.equalsIgnoreCase("admin");
+            if (!messagingAdmin) {
+                sendError(ex, 403, "Your account is SUSPENDED. You may only message the admin to appeal.");
+                return;
+            }
+        }
 
         if (to == null || content == null || content.isBlank()) {
             sendError(ex, 400, "to and content are required");
